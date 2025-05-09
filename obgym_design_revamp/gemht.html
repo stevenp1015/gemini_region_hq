@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Agenda</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg-color: #ffffff;
+            --text-color: #333745;
+            --heading-color: #2c3e50;
+            --accent-color: #3498db;
+            --accent-hover-color: #2980b9;
+            --border-color: #e0e0e0;
+            --subtle-text-color: #7f8c8d;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--heading-color);
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 2.2em;
+        }
+
+        .intro-paragraph {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+            color: var(--subtle-text-color);
+        }
+
+        .agenda-item {
+            background-color: var(--card-bg-color);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+
+        .agenda-item:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .quick-point {
+            cursor: pointer;
+            font-weight: 600; /* Montserrat bold */
+            font-family: 'Montserrat', sans-serif;
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid transparent; /* For transition */
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            color: var(--heading-color);
+        }
+
+        .quick-point:hover {
+            background-color: #fdfdfd; /* Subtle hover */
+        }
+
+        .quick-point::after {
+            content: '❯'; /* Chevron right */
+            font-size: 1.3em;
+            color: var(--accent-color);
+            transform: rotate(0deg);
+            transition: transform 0.3s ease-out, color 0.3s ease-out;
+            margin-left: 10px;
+        }
+
+        .quick-point.active::after {
+            transform: rotate(90deg); /* Chevron down */
+            color: var(--accent-hover-color);
+        }
+
+        .quick-point.active {
+            border-bottom-color: var(--border-color);
+            background-color: #fafafa;
+        }
+
+        .detailed-content {
+            max-height: 0;
+            overflow: hidden;
+            padding-left: 25px; /* Align with quick-point padding */
+            padding-right: 25px;
+            border-left: 3px solid var(--accent-color);
+            margin-left: 20px; /* Indent content slightly */
+            margin-right: 20px; /* Balance margin */
+            font-weight: normal;
+            opacity: 0;
+            transition: max-height 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), /* Smoother ease */
+                        opacity 0.4s ease-in-out 0.1s,
+                        padding-top 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+                        padding-bottom 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+                        margin-top 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+                        margin-bottom 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .quick-point.active + .detailed-content {
+            opacity: 1;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            margin-top: 0; /* No top margin, handled by padding */
+            margin-bottom: 10px; /* Space before next item if open */
+        }
+
+        .detailed-content h4 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--heading-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .detailed-content ul {
+            list-style-type: none; /* Remove default bullets */
+            padding-left: 0; /* Reset padding */
+        }
+
+        .detailed-content ul li {
+            margin-bottom: 12px;
+            padding-left: 25px; /* Space for custom bullet */
+            position: relative;
+        }
+
+        .detailed-content ul li::before {
+            content: '•'; /* Custom bullet */
+            color: var(--accent-color);
+            font-weight: bold;
+            display: inline-block;
+            position: absolute;
+            left: 5px;
+            top: -2px; /* Adjust vertical alignment */
+            font-size: 1.2em;
+        }
+
+        .detailed-content ul ul {
+            margin-top: 8px;
+            padding-left: 20px; /* Indent sub-lists */
+        }
+
+        .detailed-content ul ul li::before {
+            content: '◦'; /* Custom bullet for sub-items */
+            font-size: 1.1em;
+        }
+
+        .sub-point {
+            margin-left: 10px;
+            font-weight: normal;
+        }
+
+        strong, b {
+            font-weight: 700; /* Lato bold */
+            color: var(--text-color); /* Slightly darker for emphasis */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Appointment Agenda</h1>
+    <p class="intro-paragraph">Click on the quick reference points below to reveal the elaborated details.</p>
+
+    <div class="agenda-item">
+        <h3 class="quick-point">Ablation Review [1]</h3>
+        <div class="detailed-content">
+            <h4>Ablation Review: Elaborated Details [2]</h4>
+            <ul>
+                <li>Outcome? Bleeding/spotting status? [54, citing 1-4]
+                    <ul>
+                        <li>Confirm the success of the ablation in achieving the goal of "shut down this period" [52, citing 1].</li>
+                        <li>Discuss any current bleeding, spotting, or cramping you are experiencing since the ablation.</li>
+                        <li>Address any questions or concerns related to the immediate post-ablation recovery that were not fully resolved at the check-up.</li>
+                    </ul>
+                </li>
+                <li>Post-ablation questions? [1]</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="agenda-item">
+        <h3 class="quick-point">EDS & HORMONES (MOST IMPORTANT) [1]</h3>
+        <div class="detailed-content">
+             <h4>EDS & HORMONES: Elaborated Details (Priority Discussion) [2]</h4>
+             <ul>
+                 <li>**Recap pattern:** EDS worsens **specifically on Day 1 of period** [54, citing 5, 6].
+                     <ul>
+                        <li>Reiterate that historically, your EDS symptoms have consistently worsened, specifically **on the first day of your period** [52, citing 2, 3]. This is described as a **specific precise pattern** [52, citing 3].</li>
+                     </ul>
+                 </li>
+                 <li>Symptoms: **Seizures** [54, citing 5, 7, 8], subluxations, dislocations worsen [54, citing 6].
+                     <ul>
+                         <li>List the key EDS manifestations that are aggravated during this time: **seizures**, subluxations, and dislocations [52, citing 2, 3]. Emphasize that the seizures are a **major issue** [52, citing 4, 5] and understanding why they worsen with your cycle is vital.</li>
+                     </ul>
+                 </li>
+                 <li>**Ablation Impact on EDS?** Did stopping periods change this pattern/severity? [54, citing 6]
+                     <ul>
+                         <li>Discuss whether the cessation or reduction of your period *since the ablation* has actually resulted in a noticeable improvement or change in the severity or timing of your seizures, subluxations, and dislocations [2]. Has stopping the hormonal cycle fluctuations impacted this specific pattern? [2]</li>
+                     </ul>
+                 </li>
+                 <li>**Hormone Theories:** [1]
+                     <ul>
+                         <li>Estrogen: Helps keep tissue **tight** [54, citing 9, 10].
+                             <ul>
+                                 <li>Review the idea that **lack of estrogen** is thought to **make things more lax**, citing the example of menopause where estrogen decreases and tissues sag [52, citing 7, 8]. Conversely, **estrogen helps keep things nice and tight and perky** (mentioning skin, face, etc.) [52, citing 7, 8].</li>
+                             </ul>
+                         </li>
+                         <li>Progesterone: Makes tissue **lax** [54, citing 10-12].
+                             <ul>
+                                 <li>Review the theory that the **presence of progesterone makes things more lax**, citing the example of pregnancy where progesterone levels rise and the pubic symphysis relaxes, widening the hips [52, citing 8].</li>
+                                 <li>Note that estrogen and progesterone seem to work in **opposite ways** regarding tissue tightness [52, citing 1].</li>
+                             </ul>
+                         </li>
+                         <li>Testosterone: Libido, hair; **doesn't replace estrogen tightness** [54, citing 13, 14].
+                             <ul>
+                                 <li>Discuss its known effects from the previous conversation: it can help with **libido** and potentially **hair growth** on the head [52, citing 16].</li>
+                                 <li>Reiterate the limitations discussed: it also causes **hair growth elsewhere** (chin, body) [52, citing 16], and you **cannot control where it goes** because it acts on natural receptors [52, citing 17]. Crucially, it was noted that **testosterone doesn't** ***replace*** **estrogen's role in keeping things tight** [52, citing 15].</li>
+                                 <li>Discuss what information the testosterone lab results might provide specifically for your situation [2].</li>
+                             </ul>
+                         </li>
+                     </ul>
+                 </li>
+                 <li>Need to understand *which* hormone links to EDS laxity [54, citing 10].
+                     <ul>
+                         <li>Acknowledge that this consistent pattern strongly suggests a **hormonal factor** is involved [52, citing 5, 6]. Discuss how understanding the hormonal picture might influence future management strategies for your EDS symptoms [2].</li>
+                     </ul>
+                 </li>
+                 <li>**Outstanding Hormone Labs (Relevant to EDS/Hormones):** [2]
+                     <ul>
+                         <li>Emphasize the importance of getting the **"host of labs for hormones"** completed [52, citing 9, 10].</li>
+                         <li>These labs were ordered initially because other hormones being off **"can throw off your uterus"** [52, citing 9].</li>
+                         <li>They specifically include **thyroid and prolactin levels** [52, citing 9].</li>
+                         <li>They also include **testosterone levels** [52, citing 11-13].</li>
+                         <li>Discuss how the results of *all* these hormones might shed light on your unique hormonal picture and potentially offer clues or avenues for managing the EDS correlation [2].</li>
+                     </ul>
+                 </li>
+             </ul>
+        </div>
+    </div>
+
+    <div class="agenda-item">
+        <h3 class="quick-point">OUTSTANDING HORMONE LABS [1]</h3>
+        <div class="detailed-content">
+            <h4>Outstanding Hormone Labs: Elaborated Details [2]</h4>
+            <ul>
+                <li>**Need all labs done:** Thyroid, Prolactin, **Testosterone** [54, citing 15-19].
+                    <ul>
+                        <li>Emphasize the importance of getting the **"host of labs for hormones"** completed [52, citing 9, 10], including **thyroid and prolactin levels** [52, citing 9] and **testosterone levels** [52, citing 11-13].</li>
+                    </ul>
+                </li>
+                <li>Why needed: Understand overall hormonal picture, links to EDS/sexual issues [54, citing 11, 15, 16, 19, 20].
+                    <ul>
+                        <li>These labs were ordered initially because other hormones being off **"can throw off your uterus"** [52, citing 9].</li>
+                        <li>Discuss how the results of *all* these hormones might shed light on your unique hormonal picture and potentially offer clues or avenues for managing the EDS correlation, even if the ablation has stopped the bleeding itself [2].</li>
+                         <li>Confirm the plan for getting the **testosterone levels** checked, as this lab was specifically ordered to look into the sexual dysfunction concern [52, citing 11-13].</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="agenda-item">
+        <h3 class="quick-point">Sexual Dysfunction [1]</h3>
+        <div class="detailed-content">
+            <h4>Sexual Dysfunction: Elaborated Details [2]</h4>
+            <ul>
+                <li>Inability to orgasm, pain [54, citing 21-23].
+                    <ul>
+                         <li>Revisit the concern regarding sexual dysfunction, specifically the inability to have an orgasm and associated pain [52, citing 18]. This is labeled as "sexual dysfunction" in the notes [52, citing 19].</li>
+                    </ul>
+                </li>
+                <li>Testosterone lab link? [54, citing 16, 19]. (Also recall meds/brain surgery factors) [54, citing 16, 24, 25].
+                    <ul>
+                        <li>Confirm the plan for getting the **testosterone levels** checked, as this lab was specifically ordered to look into this [52, citing 11-13].</li>
+                        <li>Discuss what potential insights the testosterone level might offer regarding your libido and ability to orgasm, remembering that medication side effects and the impact of previous brain surgery were also discussed as potential factors [52, citing 11, 20, 21].</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="agenda-item">
+        <h3 class="quick-point">BRCA1 & Long-Term [1]</h3>
+        <div class="detailed-content">
+            <h4>BRCA1 & Long-Term: Elaborated Details [2]</h4>
+            <ul>
+                <li>BRCA1 status, mom's ovarian cancer [54, citing 15, 26].
+                    <ul>
+                        <li>Briefly mention your BRCA1 gene mutation and family history of ovarian cancer [52, citing 9, 22].</li>
+                    </ul>
+                </li>
+                <li>Ovary removal idea @ 45, challenges with external hormones for elasticity/overall body support [54, citing 9, 11, 27-29]. (Keep brief).
+                    <ul>
+                        <li>Recall the general recommendation regarding ovarian removal around age 45 [52, citing 13].</li>
+                        <li>Acknowledge that removing ovaries would eliminate your natural hormone production [52, citing 14] and that reliance on external hormones might not fully replicate the benefits of natural hormones, especially regarding elasticity and potentially other functions due to receptors throughout the body [52, citing 23, 24].</li>
+                        <li>Note that research is always evolving [52, citing 23]. Keep this section concise as per your prioritization.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const quickPoints = document.querySelectorAll('.quick-point');
+
+            quickPoints.forEach(point => {
+                point.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const detailedContent = this.nextElementSibling;
+
+                    if (detailedContent && detailedContent.classList.contains('detailed-content')) {
+                        if (this.classList.contains('active')) {
+                            // Set max-height to scrollHeight for smooth animation to content size
+                            // Add a little extra for padding/margin changes if not perfectly synced by CSS transition timing
+                            detailedContent.style.maxHeight = detailedContent.scrollHeight + 40 + "px"; // 40px buffer for padding
+                        } else {
+                            detailedContent.style.maxHeight = null; // Collapses by reverting to CSS max-height: 0
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+2025-05-09 11:58:55,788 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 11:58:55,788 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 11:58:55,788 - Minion_Charlie - CRITICAL - Failed to load Minion guidelines. Cannot operate.
+2025-05-09 12:04:00,409 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 12:04:00,410 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 12:04:00,411 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 12:04:00,411 - Minion_Charlie - CRITICAL - MCP Super-Tool script not found at: /Users/ttig/gemini_legion_hq/mcp_super_tool/main.js
+2025-05-09 12:05:04,428 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 12:05:04,428 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 12:05:04,429 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 12:05:04,429 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 12:05:04,429 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 12:05:04,429 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 12:05:04,429 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 12:05:04,438 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents failed: 405 Client Error: Method Not Allowed for url: http://127.0.0.1:8080/agents
+2025-05-09 12:05:04,439 - Minion_Charlie - ERROR - Agent Charlie registration failed. Response: None
+2025-05-09 12:05:04,439 - Minion_Charlie - ERROR - Minion Charlie could not register with A2A server. A2A features will be limited.
+2025-05-09 12:07:34,408 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 12:07:34,408 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 12:07:34,409 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 12:07:34,409 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 12:07:34,410 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 12:07:34,410 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 12:07:34,410 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 12:07:34,419 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents failed: 405 Client Error: Method Not Allowed for url: http://127.0.0.1:8080/agents
+2025-05-09 12:07:34,419 - Minion_Charlie - ERROR - Agent Charlie registration failed. Response: None
+2025-05-09 12:07:34,419 - Minion_Charlie - ERROR - Minion Charlie could not register with A2A server. A2A features will be limited.
+2025-05-09 12:15:40,746 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 12:15:40,747 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 12:15:40,747 - Minion_Charlie - INFO - Attempting to stop A2A message listener for Charlie...
+2025-05-09 12:15:40,747 - Minion_Charlie - INFO - Minion Charlie shutdown complete.
+2025-05-09 12:16:08,254 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 12:16:08,254 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 12:16:08,255 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 12:16:08,256 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 12:16:08,256 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 12:16:08,256 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 12:16:08,256 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 12:16:08,264 - Minion_Charlie - INFO - Agent Charlie registered successfully with A2A server.
+2025-05-09 12:16:08,265 - Minion_Charlie - INFO - A2A message listener started for Charlie.
+2025-05-09 12:16:13,272 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:16:18,279 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:16:23,286 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:16:28,291 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:16:33,298 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:16:38,302 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:16:43,312 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:16:48,322 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:16:53,331 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:16:58,340 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:03,345 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:08,351 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:13,359 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:18,366 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:23,374 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:28,382 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:33,389 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:38,397 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:43,403 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:48,409 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:53,418 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:17:58,428 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:03,437 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:08,447 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:13,451 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:18,459 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:23,508 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:28,516 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:33,525 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:38,534 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:43,544 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:48,552 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:53,558 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:18:58,566 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:19:03,573 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:19:08,581 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:19:13,588 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:19:18,595 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:19:23,604 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:19:28,610 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents/Charlie/messages failed: 404 Client Error: Not Found for url: http://127.0.0.1:8080/agents/Charlie/messages
+2025-05-09 12:19:31,354 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 12:19:31,355 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 12:19:31,355 - Minion_Charlie - INFO - Attempting to stop A2A message listener for Charlie...
+2025-05-09 12:19:54,084 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 12:19:54,084 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 12:19:54,085 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 12:19:54,085 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 12:19:54,085 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 12:19:54,085 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 12:19:54,085 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 12:19:54,094 - Minion_Charlie - INFO - Agent Charlie registered successfully with A2A server.
+2025-05-09 12:19:54,095 - Minion_Charlie - INFO - A2A message listener started for Charlie.
+2025-05-09 12:23:56,432 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 12:23:56,432 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 12:23:56,432 - Minion_Charlie - INFO - Attempting to stop A2A message listener for Charlie...
+2025-05-09 12:24:23,210 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 12:24:23,212 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 12:24:23,213 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 12:24:23,213 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 12:24:23,213 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 12:24:23,214 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 12:24:23,214 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 12:24:23,224 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents failed: 400 Client Error: Bad Request for url: http://127.0.0.1:8080/agents
+2025-05-09 12:24:23,224 - Minion_Charlie - ERROR - Agent Charlie registration failed. Response: None
+2025-05-09 12:24:23,224 - Minion_Charlie - ERROR - Minion Charlie could not register with A2A server. A2A features will be limited.
+2025-05-09 12:27:26,983 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 12:27:26,983 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 12:27:26,983 - Minion_Charlie - INFO - Attempting to stop A2A message listener for Charlie...
+2025-05-09 12:27:26,984 - Minion_Charlie - INFO - Minion Charlie shutdown complete.
+2025-05-09 12:31:09,402 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 12:31:09,403 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 12:31:09,405 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 12:31:09,405 - Minion_Charlie - ERROR - Agent card is missing required fields (id, name, description).
+2025-05-09 12:31:09,405 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 12:31:09,405 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 12:31:09,405 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 12:31:09,406 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 12:31:09,417 - Minion_Charlie - ERROR - A2A request to http://127.0.0.1:8080/agents failed: 500 Server Error: Internal Server Error for url: http://127.0.0.1:8080/agents
+2025-05-09 12:31:09,417 - Minion_Charlie - ERROR - Agent Charlie registration failed. Response: None
+2025-05-09 12:31:09,417 - Minion_Charlie - ERROR - Minion Charlie could not register with A2A server. A2A features will be limited.
+2025-05-09 12:33:42,680 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 12:33:42,680 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 12:33:42,680 - Minion_Charlie - INFO - Attempting to stop A2A message listener for Charlie...
+2025-05-09 12:33:42,681 - Minion_Charlie - INFO - Minion Charlie shutdown complete.
+2025-05-09 12:34:36,298 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 12:34:36,299 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 12:34:36,300 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 12:34:36,300 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 12:34:36,300 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 12:34:36,300 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 12:34:36,300 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 12:34:36,310 - Minion_Charlie - INFO - Agent Charlie registered successfully with A2A server.
+2025-05-09 12:34:36,311 - Minion_Charlie - INFO - A2A message listener started for Charlie.
+2025-05-09 12:50:41,978 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 12:50:41,978 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 12:50:41,978 - Minion_Charlie - INFO - Attempting to stop A2A message listener for Charlie...
+2025-05-09 13:13:22,766 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 13:13:22,766 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 13:13:22,767 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 13:13:22,768 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 13:13:22,768 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 13:13:22,768 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 13:13:22,768 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 13:13:22,778 - Minion_Charlie - INFO - Agent Charlie registered successfully with A2A server.
+2025-05-09 13:13:22,778 - Minion_Charlie - INFO - A2A message listener started for Charlie.
+2025-05-09 13:16:22,503 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 13:16:22,504 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 13:16:22,504 - Minion_Charlie - INFO - Attempting to stop A2A message listener for Charlie...
+2025-05-09 13:16:48,255 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 13:16:48,255 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 13:16:48,256 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 13:16:48,257 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 13:16:48,257 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 13:16:48,257 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 13:16:48,257 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 13:16:48,266 - Minion_Charlie - INFO - Agent Charlie registered successfully with A2A server.
+2025-05-09 13:16:48,267 - Minion_Charlie - INFO - A2A message listener started for Charlie.

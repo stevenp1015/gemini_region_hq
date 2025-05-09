@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Agenda Enhanced</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+:root {
+  --primary-color: #6b11cb83; /* Deep purple */
+  --secondary-color: #2575fc; /* Vibrant blue */
+  --accent-color: #ff6f91; /* Soft pink for accents */
+
+  /* New background color variables */
+  --background-gradient-start: #eaeaea; /* Example: Light Teal */
+  --background-gradient-end: #ffffff; /* Example: Light Pink */
+
+  --background-image: linear-gradient(to right, var(--background-gradient-start), var(--background-gradient-end));
+  --text-color: #333;
+  --card-bg: #ffffff;
+  --border-color: #e0e0e0;
+  --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --border-radius: 8px;
+}
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.7;
+            margin: 0;
+            padding: 30px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        body > p { /* Target only the main intro paragraph */
+            text-align: center;
+            color: #555;
+            font-size: 1.1em;
+            margin-bottom: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .container { /* Optional: to wrap all sections for better centering/max-width */
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .quick-point {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 18px 25px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 20px;
+            margin-bottom: 0; /* Remove bottom margin as details will attach */
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease-in-out;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden; /* For pseudo-element animations */
+            font-size: 1.15em;
+        }
+
+        .quick-point::before {
+            content: '+';
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.8em;
+            font-weight: 300;
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Elastic transition */
+        }
+        
+        .quick-point.active::before {
+            transform: translateY(-50%) rotate(45deg);
+        }
+
+        .quick-point:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .quick-point:active {
+            transform: translateY(-1px) scale(1.01);
+        }
+
+        .detailed-content {
+            background-color: var(--card-bg);
+            margin-left: 0; /* No indent needed with new design */
+            padding: 0px 25px; /* Padding top/bottom will be handled by max-height transition */
+            font-weight: normal;
+            border: 1px solid var(--border-color);
+            border-top: none; /* Attach to quick-point */
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.7s cubic-bezier(0.25, 0.8, 0.25, 1), padding-top 0.7s ease, padding-bottom 0.7s ease; /* Smooth slide */
+        }
+
+        .detailed-content.open {
+            max-height: 2000px; /* Adjust if content is very long */
+            padding-top: 20px;
+            padding-bottom: 25px;
+            transition: max-height 1s cubic-bezier(0.25, 0.8, 0.25, 1), padding-top 0.7s ease, padding-bottom 0.7s ease;
+        }
+        
+        /* .detailed-content h4 styling removed as h4s are removed */
+
+        .concise-item {
+            margin-bottom: 15px;
+            border-bottom: 1px dashed var(--border-color); /* Separator for concise items */
+            padding-bottom: 15px;
+        }
+        .concise-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .concise-point-header {
+            font-weight: 600;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease-in-out;
+            margin: 0 0 8px 0;
+            position: relative;
+            background-color: #f8f9fa; /* Light background for clickable concise headers */
+            border: 1px solid var(--border-color);
+        }
+
+        .concise-point-header:hover {
+            background-color: #e9ecef; /* Darker on hover */
+        }
+
+        .concise-point-header::after { /* Plus/minus icon for concise headers */
+            content: '+';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.4em;
+            color: var(--secondary-color);
+            transition: transform 0.3s ease;
+        }
+
+        .concise-point-header.active::after {
+            transform: translateY(-50%) rotate(45deg);
+        }
+        
+        .further-details {
+            padding-left: 20px; /* Indent further details */
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), padding-top 0.5s ease, padding-bottom 0.5s ease;
+            background-color: #fff; /* Ensure background for content */
+            border-radius: 0 0 6px 6px;
+            /* border: 1px solid #eee; */ /* Optional border */
+            /* border-top: none; */
+            margin-top: -1px; /* Align with header border */
+        }
+
+        .further-details.open {
+            max-height: 1500px; /* Adjust if content is very long */
+            padding-top: 10px;
+            padding-bottom: 15px;
+            /* border-top: 1px dashed var(--border-color); */ /* Separator if needed */
+        }
+
+        .detailed-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .detailed-content ul li {
+            margin-bottom: 12px;
+            padding-left: 25px;
+            position: relative;
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            border-radius: 4px; /* Subtle rounding for hover effect */
+        }
+
+        .detailed-content ul li:hover {
+            background-color: #f9f9f9; /* Light highlight on hover */
+            transform: translateX(3px); /* Slight shift on hover */
+        }
+        
+        .detailed-content ul li::before {
+            content: '✓'; /* Checkmark or other icon */
+            color: var(--accent-color);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .detailed-content ul ul {
+            margin-top: 8px;
+            padding-left: 20px; /* Indent sub-lists */
+        }
+        
+        .detailed-content ul ul li::before {
+            content: '›'; /* Different icon for sub-items */
+            color: var(--secondary-color);
+        }
+
+        .sub-point { /* This class seems unused in the provided HTML structure, but styling just in case */
+            margin-left: 10px;
+            font-weight: normal;
+            font-style: italic;
+            color: #555;
+        }
+
+        /* Styling for bold text within list items for emphasis */
+        .detailed-content li strong {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .citation {
+            font-size: 0.8em;
+            color: var(--accent-color);
+            background-color: #fdf2f5; /* Light pinkish background for citations */
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            margin-left: 5px;
+            display: inline-block; /* Ensures padding and background apply correctly */
+            vertical-align: middle;
+        }
+
+        @keyframes fadeInSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-section {
+            animation: fadeInSlideUp 0.6s ease-out forwards;
+            opacity: 0; /* Start hidden for animation */
+        }
+
+        /* Staggered animation delays for sections */
+        .content-section:nth-child(1) { animation-delay: 0.1s; }
+        .content-section:nth-child(2) { animation-delay: 0.2s; }
+        .content-section:nth-child(3) { animation-delay: 0.3s; }
+        .content-section:nth-child(4) { animation-delay: 0.4s; }
+        .content-section:nth-child(5) { animation-delay: 0.5s; }
+        /* Add more if there are more sections */
+        body {
+  background-image: var(--background-image);
+  /* or simply */
+  background: var(--background-image);
+}
+
+    </style>
+</head>
+<body>
+
+    <h1>Appointment Agenda: Quick Reference</h1>
+    <p>Explore your appointment topics. Click on any heading to reveal or hide the detailed information.</p>
+    
+    <div class="container"> <!-- Added container -->
+    <div class="content-section">
+        <h3 class="quick-point">Ablation Review</h3>
+        <div class="detailed-content">
+            <!-- Ablation Review - New Structure -->
+            <div class="concise-item">
+                <h5 class="concise-point-header">Outcome? Bleeding/spotting status? <span class="citation">[1-4]</span></h5>
+                <div class="further-details">
+                    <ul>
+                        <li>Confirm success in achieving "shut down this period" goal. <span class="citation">[52, citing 1]</span></li>
+                        <li>Discuss current bleeding, spotting, or cramping.</li>
+                        <li>Address unresolved post-ablation recovery questions.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="concise-item">
+                <h5 class="concise-point-header">Post-ablation questions?</h5>
+                <div class="further-details">
+                    <p>Any post-ablation questions remaining? <span class="citation">[1]</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h3 class="quick-point">EDS & Hormones (Most Important)</h3>
+        <div class="detailed-content">
+           <!-- EDS & Hormones - New Structure -->
+           <div class="concise-item">
+               <h5 class="concise-point-header">Recap pattern: EDS worsens specifically on Day 1 of period <span class="citation">[5, 6]</span>.</h5>
+               <div class="further-details">
+                   <ul>
+                       <li>Reiterate historical worsening of EDS symptoms on period Day 1 (specific, precise pattern). <span class="citation">[52, citing 2, 3]</span></li>
+                    </ul>
+               </div>
+           </div>
+           <div class="concise-item">
+               <h5 class="concise-point-header">Symptoms: Seizures <span class="citation">[5, 7, 8]</span>, subluxations, dislocations worsen <span class="citation">[6]</span>.</h5>
+               <div class="further-details">
+                   <ul>
+                        <li>Key aggravated EDS manifestations: seizures (major issue), subluxations, dislocations. Vital to understand cycle link. <span class="citation">[52, citing 2-5]</span></li>
+                    </ul>
+               </div>
+           </div>
+           <div class="concise-item">
+               <h5 class="concise-point-header">Ablation Impact on EDS? Did stopping periods change this pattern/severity? <span class="citation">[6]</span></h5>
+               <div class="further-details">
+                   <ul>
+                        <li>Discuss if period cessation/reduction post-ablation improved/changed seizure, subluxation, dislocation severity/timing. Impact of stopped hormonal fluctuations? <span class="citation">[2]</span></li>
+                    </ul>
+               </div>
+           </div>
+           <div class="concise-item">
+               <h5 class="concise-point-header">Hormone Theories: Estrogen: Helps keep tissue tight <span class="citation">[9, 10]</span>. Progesterone: Makes tissue lax <span class="citation">[10-12]</span>. Testosterone: Libido, hair; doesn't replace estrogen tightness <span class="citation">[13, 14]</span>.</h5>
+               <div class="further-details">
+                    <ul>
+                        <li>Estrogen: Helps keep tissue **tight**. <span class="citation">[54, citing 9, 10]</span>
+                            <ul>
+                                <li>Lack of estrogen → laxity (e.g., menopause). Estrogen → tight/perky tissues (skin, face). <span class="citation">[52, citing 7, 8]</span></li>
+                            </ul>
+                        </li>
+                        <li>Progesterone: Makes tissue **lax**. <span class="citation">[54, citing 10-12]</span>
+                            <ul>
+                                <li>Presence of progesterone → laxity (e.g., pregnancy, pubic symphysis relaxes). <span class="citation">[52, citing 8]</span></li>
+                                <li>Estrogen & progesterone: opposite effects on tissue tightness. <span class="citation">[52, citing 1]</span></li>
+                            </ul>
+                        </li>
+                        <li>Testosterone: Libido, hair; **doesn't replace estrogen tightness**. <span class="citation">[54, citing 13, 14]</span>
+                            <ul>
+                                <li>Known effects: helps libido, potential head hair growth. <span class="citation">[52, citing 16]</span></li>
+                                <li>Limitations: hair growth elsewhere (chin, body), uncontrollable distribution. Crucially, **doesn't replace estrogen's tightening role**. <span class="citation">[52, citing 15-17]</span></li>
+                                <li>Potential insights from testosterone lab results for your situation? <span class="citation">[2]</span></li>
+                            </ul>
+                        </li>
+                    </ul>
+               </div>
+           </div>
+           <div class="concise-item">
+               <h5 class="concise-point-header">Need to understand which hormone links to EDS laxity <span class="citation">[10]</span>.</h5>
+               <div class="further-details">
+                   <ul>
+                        <li>Consistent pattern strongly suggests hormonal factor. How might understanding hormonal picture influence future EDS management? <span class="citation">[52, citing 5, 6]</span>, <span class="citation">[2]</span></li>
+                    </ul>
+               </div>
+           </div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h3 class="quick-point">Outstanding Hormone Labs</h3>
+        <div class="detailed-content">
+            <!-- Outstanding Hormone Labs - New Structure -->
+            <div class="concise-item">
+                <h5 class="concise-point-header">Need all labs done: Thyroid, Prolactin, Testosterone <span class="citation">[15-19]</span>.</h5>
+                <div class="further-details">
+                    <ul>
+                        <li>Emphasize completing **"host of labs for hormones"** (thyroid, prolactin, testosterone). <span class="citation">[52, citing 9-13]</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="concise-item">
+                <h5 class="concise-point-header">Why needed: Understand overall hormonal picture, links to EDS/sexual issues <span class="citation">[11, 15, 16, 19, 20]</span>.</h5>
+                <div class="further-details">
+                    <ul>
+                        <li>Labs ordered as hormonal imbalances **"can throw off your uterus"**. <span class="citation">[52, citing 9]</span></li>
+                        <li>How results might clarify hormonal picture & guide EDS management post-ablation. <span class="citation">[2]</span></li>
+                         <li>Confirm plan for **testosterone levels** check (ordered for sexual dysfunction concern). <span class="citation">[52, citing 11-13]</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h3 class="quick-point">Sexual Dysfunction</h3>
+        <div class="detailed-content">
+            <!-- Sexual Dysfunction - New Structure -->
+            <div class="concise-item">
+                <h5 class="concise-point-header">Inability to orgasm, pain <span class="citation">[21-23]</span>.</h5>
+                <div class="further-details">
+                    <ul>
+                         <li>Revisit concern: inability to orgasm, associated pain (labeled "sexual dysfunction"). <span class="citation">[52, citing 18, 19]</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="concise-item">
+                <h5 class="concise-point-header">Testosterone lab link? <span class="citation">[16, 19]</span>. (Also recall meds/brain surgery factors) <span class="citation">[16, 24, 25]</span>.</h5>
+                <div class="further-details">
+                    <ul>
+                        <li>Confirm plan for **testosterone levels** check (ordered for this concern). <span class="citation">[52, citing 11-13]</span></li>
+                        <li>Potential insights from testosterone on libido/orgasm; recall medication side effects & brain surgery impact. <span class="citation">[52, citing 11, 20, 21]</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h3 class="quick-point">BRCA1 & Long-Term Planning</h3>
+        <div class="detailed-content">
+            <!-- BRCA1 & Long-Term Planning - New Structure -->
+            <div class="concise-item">
+                <h5 class="concise-point-header">BRCA1 status, mom's ovarian cancer <span class="citation">[15, 26]</span>.</h5>
+                <div class="further-details">
+                    <ul>
+                        <li>Briefly mention BRCA1 gene mutation & family history of ovarian cancer. <span class="citation">[52, citing 9, 22]</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="concise-item">
+                <h5 class="concise-point-header">Ovary removal idea @ 45, challenges with external hormones for elasticity/overall body support <span class="citation">[9, 11, 27-29]</span>. (Keep brief).</h5>
+                <div class="further-details">
+                    <ul>
+                        <li>Recall ovarian removal recommendation ~age 45. <span class="citation">[52, citing 13]</span></li>
+                        <li>Acknowledge ovary removal eliminates natural hormones; external hormones may not fully replicate natural benefits (elasticity, body-wide receptor functions). <span class="citation">[52, citing 14, 23, 24]</span></li>
+                        <li>Note: research is evolving. <span class="citation">[52, citing 23]</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div> <!-- End container -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const quickPoints = document.querySelectorAll('.quick-point');
+
+            quickPoints.forEach(point => {
+                point.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const detailedContent = this.nextElementSibling;
+
+                    if (detailedContent && detailedContent.classList.contains('detailed-content')) {
+                        detailedContent.classList.toggle('open');
+                    }
+                });
+            });
+
+            const conciseHeaders = document.querySelectorAll('.concise-point-header');
+            conciseHeaders.forEach(header => {
+                header.addEventListener('click', function(event) {
+                    // Prevent the main accordion from closing if a concise header is clicked
+                    event.stopPropagation();
+                    
+                    this.classList.toggle('active');
+                    const furtherDetails = this.nextElementSibling;
+                    if (furtherDetails && furtherDetails.classList.contains('further-details')) {
+                        furtherDetails.classList.toggle('open');
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "host": "127.0.0.1",
+  "port": 8080,
+  "storage_path": "/Users/ttig/GEMINI_LEGION_HQ/system_data/a2a_storage.json",
+  "log_level": "INFO"
+}

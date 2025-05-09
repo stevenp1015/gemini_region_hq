@@ -1,0 +1,26 @@
+{
+  "servers": [
+    {
+      "name": "computer_controller",
+      "description": "Controls the local computer: filesystem, terminal, GUI interaction.",
+      "type": "stdio",
+      "command": ["node", "/Users/ttig/GEMINI_LEGION_HQ/mcp_servers/computer_use_mcp/dist/index.js"],
+      "workingDirectory": "/Users/ttig/GEMINI_LEGION_HQ/mcp_servers/computer_use_mcp",
+      "requestSchema": {
+        "type": "object",
+        "properties": {
+          "tool_name": { "type": "string" },
+          "tool_input": { "type": "object" }
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "result": { "type": "string" },
+          "error": { "type": "string" }
+        }
+      }
+    }
+    // Add other MCP servers here if needed in the future
+  ]
+}

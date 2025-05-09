@@ -1,11 +1,6 @@
 # macOS
 .DS_Store
 
-# Log files
-logs/
-*.log
-*.pid
-
 # Python
 venv_legion/
 *.pyc
@@ -22,7 +17,7 @@ yarn-error.log*
 
 # General
 .env
-system_data/ # Assuming this contains large or sensitive data not for version control
+
 
 # IDE/Editor specific (examples)
 .vscode/

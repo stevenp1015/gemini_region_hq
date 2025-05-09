@@ -1,6 +1,6 @@
 import json
 import logging
-
+from collections import defaultdict # Added for message queues
 from collections.abc import AsyncIterable
 from typing import Any
 
@@ -45,7 +45,8 @@ class A2AServer:
         self.endpoint = endpoint
         self.task_manager = task_manager
         self.agent_card = agent_card
-        self.registered_agents: dict[str, AgentCard] = {} # In-memory store for registered agents
+        self.registered_agents: dict[str, AgentCard] = {}
+        self.minion_message_queues: dict[str, list] = defaultdict(list) # In-memory message queues per minion
         self.app = Starlette()
         self.app.add_route(
             self.endpoint, self._process_request, methods=['POST']
@@ -123,19 +124,27 @@ class A2AServer:
         minion_id = request.path_params['minion_id']
         
         if request.method == 'GET':
-            logger.info(f"GET /agents/{minion_id}/messages requested - returning empty list placeholder")
-            # TODO: Implement actual message retrieval for the specific minion
-            return JSONResponse([]) # Return empty list of messages for now
+            messages_for_minion = self.minion_message_queues.get(minion_id, [])
+            if messages_for_minion:
+                logger.info(f"GET /agents/{minion_id}/messages - Delivering {len(messages_for_minion)} message(s).")
+                # Return messages and clear the queue for this minion
+                messages_to_send = list(messages_for_minion) # Create a copy
+                self.minion_message_queues[minion_id] = [] # Clear the queue
+                return JSONResponse(messages_to_send)
+            else:
+                logger.info(f"GET /agents/{minion_id}/messages - No messages found.")
+                return JSONResponse([]) # Return empty list if no messages
         
         elif request.method == 'POST':
             logger.info(f"POST /agents/{minion_id}/messages - Message received for Minion {minion_id}.")
             try:
                 message_payload = await request.json()
-                # TODO: Validate message_payload
-                # TODO: Store this message in a queue for the target minion_id
-                logger.info(f"Message for {minion_id} from {message_payload.get('sender_id', 'UnknownSender')}: {str(message_payload.get('content', ''))[:100]}...")
-                # For now, just acknowledge receipt
-                return JSONResponse({'status': 'message_accepted', 'for_minion': minion_id}, status_code=202) # 202 Accepted
+                # TODO: Validate message_payload if necessary (e.g., against a Message model)
+                
+                self.minion_message_queues[minion_id].append(message_payload)
+                logger.info(f"Message for {minion_id} from {message_payload.get('sender_id', 'UnknownSender')} queued. Content: {str(message_payload.get('content', ''))[:100]}...")
+                logger.debug(f"Current queue for {minion_id}: {self.minion_message_queues[minion_id]}")
+                return JSONResponse({'status': 'message_queued', 'for_minion': minion_id}, status_code=202) # 202 Accepted
             except json.JSONDecodeError:
                 logger.error(f"Failed to decode JSON from message for {minion_id}.", exc_info=True)
                 return JSONResponse({'status': 'error', 'message': 'Invalid JSON format'}, status_code=400)

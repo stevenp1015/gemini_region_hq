@@ -4,6 +4,7 @@ import time
 import json
 import uuid
 import argparse
+import threading # Added for processing tasks in a new thread
 from datetime import datetime
 
 # Ensure minion_core is in PYTHONPATH if running this script directly for testing
@@ -134,11 +135,16 @@ class Minion:
         # A more advanced Minion would have a message queue and process these in its main thinking loop.
         self.logger.info(f"A2A message from {sender_id} (type: {message_type}): '{str(content)[:100]}...'")
         
-        # Example: If it's a task, add to a task queue or directly process if simple.
-        # This is a placeholder for more sophisticated message handling.
-        # self.process_task_from_a2a(sender_id, content, message_type)
-        
-        # Add to conversation history to inform LLM if relevant
+        if message_type == "user_broadcast_directive" and content:
+            self.logger.info(f"Received broadcast directive. Starting task processing in a new thread for: {content[:60]}...")
+            # Run process_task in a new thread to avoid blocking the A2A listener
+            task_thread = threading.Thread(target=self.process_task, args=(content,))
+            task_thread.daemon = True # Allow main program to exit even if threads are running
+            task_thread.start()
+        else:
+            self.logger.info(f"A2A message type '{message_type}' not a directive or content is empty. Logging only.")
+
+        # Add to conversation history to inform LLM if relevant (conceptual for now)
         history_entry = f"[A2A Message Received from {sender_id} ({message_type})]: {content}"
         self.add_to_conversation_history("user", history_entry) # Treat A2A messages as user input for context
 

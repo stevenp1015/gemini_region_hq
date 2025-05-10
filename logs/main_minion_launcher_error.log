@@ -55,3 +55,30 @@ Traceback (most recent call last):
   File "/Users/ttig/gemini_legion_hq/minion_core/tool_manager.py", line 20, in __init__
     raise FileNotFoundError(f"MCP Super-Tool script not found: {MCP_SUPER_TOOL_SCRIPT_PATH}")
 FileNotFoundError: MCP Super-Tool script not found: /Users/ttig/gemini_legion_hq/mcp_super_tool/main.js
+2025-05-10 17:57:06,072 - MainMinionLauncher - CRITICAL - Failed to start Minion Alpha. Error: 'Minion' object has no attribute 'logger'
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/main_minion.py", line 1348, in <module>
+    minion_instance = Minion(
+                      ^^^^^^^
+  File "/Users/ttig/gemini_legion_hq/minion_core/main_minion.py", line 67, in __init__
+    self.logger.info(f"M2M Config: Retries={self.m2m_retry_attempts}, Timeout={self.m2m_default_timeout_seconds}s, MaxDepth={self.m2m_max_delegation_depth}")
+    ^^^^^^^^^^^
+AttributeError: 'Minion' object has no attribute 'logger'
+2025-05-10 17:57:07,725 - MainMinionLauncher - CRITICAL - Failed to start Minion Bravo. Error: 'Minion' object has no attribute 'logger'
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/main_minion.py", line 1348, in <module>
+    minion_instance = Minion(
+                      ^^^^^^^
+  File "/Users/ttig/gemini_legion_hq/minion_core/main_minion.py", line 67, in __init__
+    self.logger.info(f"M2M Config: Retries={self.m2m_retry_attempts}, Timeout={self.m2m_default_timeout_seconds}s, MaxDepth={self.m2m_max_delegation_depth}")
+    ^^^^^^^^^^^
+AttributeError: 'Minion' object has no attribute 'logger'
+2025-05-10 17:57:09,751 - MainMinionLauncher - CRITICAL - Failed to start Minion Charlie. Error: 'Minion' object has no attribute 'logger'
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/main_minion.py", line 1348, in <module>
+    minion_instance = Minion(
+                      ^^^^^^^
+  File "/Users/ttig/gemini_legion_hq/minion_core/main_minion.py", line 67, in __init__
+    self.logger.info(f"M2M Config: Retries={self.m2m_retry_attempts}, Timeout={self.m2m_default_timeout_seconds}s, MaxDepth={self.m2m_max_delegation_depth}")
+    ^^^^^^^^^^^
+AttributeError: 'Minion' object has no attribute 'logger'

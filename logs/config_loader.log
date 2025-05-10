@@ -67,3 +67,57 @@
 2025-05-09 15:03:28,945 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
 2025-05-09 15:03:31,045 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
 2025-05-09 15:03:31,045 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 15:31:44,234 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 15:31:44,235 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 15:31:46,006 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 15:31:46,006 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 15:31:48,069 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 15:31:48,071 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 15:59:41,663 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 15:59:41,664 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 15:59:43,618 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 15:59:43,619 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 15:59:45,519 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 15:59:45,519 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:07:20,812 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:07:20,814 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:07:22,586 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:07:22,587 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:07:24,721 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:07:24,722 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:10:59,710 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:10:59,712 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:11:01,394 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:11:01,395 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:11:03,195 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:11:03,196 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:15:09,792 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:15:09,793 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:15:11,481 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:15:11,482 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:15:13,553 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:15:13,553 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:24:37,749 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:24:37,750 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:24:39,934 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:24:39,935 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:24:41,697 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:24:41,699 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:31:20,627 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:31:20,629 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:31:22,417 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:31:22,417 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:31:24,541 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:31:24,542 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:36:18,619 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:36:18,620 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:36:20,440 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:36:20,441 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 16:36:22,381 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 16:36:22,382 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 20:01:27,406 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 20:01:27,407 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 20:01:29,090 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 20:01:29,091 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion
+2025-05-09 20:01:31,057 - ConfigLoader - INFO - Successfully loaded Minion guidelines from: /Users/ttig/gemini_legion_hq/system_configs/minion_guidelines.json
+2025-05-09 20:01:31,058 - ConfigLoader - INFO - Successfully loaded GEMINI_API_KEY_LEGION from /Users/ttig/gemini_legion_hq/system_configs/.env.legion

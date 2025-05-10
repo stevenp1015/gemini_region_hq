@@ -42,7 +42,7 @@ export class GeminiInteractor {
             process.exit(1);
         }
         this.model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash-preview-04-17", // REQ: Use specified model.
+            model: "gemini-2.5-pro-preview-05-06", // REQ: Use specified model.
             // REQ: System instruction is critical for defining behavior and tool use.
             systemInstruction: {
                 // Role for system instruction parts is implicitly 'system' if directly providing parts array

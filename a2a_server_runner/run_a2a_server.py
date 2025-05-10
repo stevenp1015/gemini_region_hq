@@ -1,19 +1,23 @@
 import os
 import sys
-import json
-import time
+import time # json import removed as it's no longer directly used here
 import logging # Use standard logging for the runner itself
 
-# Define paths relative to the script or using environment variables
-base_project_dir = os.getenv("BASE_PROJECT_DIR")
-if not base_project_dir:
-    print("CRITICAL: BASE_PROJECT_DIR environment variable not set.", file=sys.stderr)
-    sys.exit(1)
+# Import the new ConfigManager instance
+# Ensure system_configs is discoverable, e.g. by adding project root to PYTHONPATH if necessary
+# or by adjusting sys.path here if run_a2a_server.py is not in the project root.
+try:
+    from system_configs.config_manager import config
+except ImportError:
+    # Fallback if system_configs is not directly in PYTHONPATH
+    # This assumes run_a2a_server.py is in a subdirectory of the project root
+    project_root_for_config = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    sys.path.insert(0, project_root_for_config)
+    from system_configs.config_manager import config
 
-a2a_framework_dir = os.path.join(base_project_dir, "a2a_framework")
-a2a_python_path = os.path.join(a2a_framework_dir, "samples/python") # Path containing 'common'
-config_path = os.path.join(base_project_dir, "system_configs/a2a_server_config.json")
-logs_dir = os.path.join(base_project_dir, "logs")
+# --- Initialize basic paths using ConfigManager ---
+project_root = config.get_project_root()
+logs_dir = config.get_path("global.logs_dir", "logs") # Uses project_root implicitly if relative
 a2a_server_runner_log_file = os.path.join(logs_dir, "a2a_server_runner.log")
 
 # Ensure logs directory exists
@@ -21,25 +25,29 @@ if not os.path.exists(logs_dir):
     try:
         os.makedirs(logs_dir)
     except OSError as e:
+        # Use print for critical early errors before logger might be fully set up
         print(f"CRITICAL: Could not create logs directory {logs_dir}. Error: {e}", file=sys.stderr)
         sys.exit(1)
 
 # Setup basic logging for this runner script
+# The log level for this specific runner script can be INFO,
+# while the A2A server components' log level will be read from config.
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.INFO, # Keep runner log level potentially separate
     format='%(asctime)s - A2A_SERVER_RUNNER - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler(a2a_server_runner_log_file, encoding='utf-8'),
         logging.StreamHandler(sys.stdout) # Also log to console
     ]
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__) # Logger for this runner script
 
-# --- Add necessary paths for imports ---
-# We need 'samples/python' in sys.path to find 'common'
-if a2a_python_path not in sys.path:
-    sys.path.insert(0, a2a_python_path)
-    logger.info(f"Added {a2a_python_path} to sys.path for imports.")
+# --- Add necessary paths for imports (e.g., for 'common' from a2a_framework) ---
+# Path to a2a_framework/samples/python
+a2a_samples_python_path = os.path.join(project_root, "a2a_framework", "samples", "python")
+if a2a_samples_python_path not in sys.path:
+    sys.path.insert(0, a2a_samples_python_path)
+    logger.info(f"Added {a2a_samples_python_path} to sys.path for 'common' module imports.")
 
 # --- Import the necessary classes AFTER setting path ---
 try:
@@ -60,34 +68,42 @@ except Exception as e:
 
 if __name__ == "__main__":
     logger.info("A2A Server Runner Initializing...")
-    logger.info(f"Base Project Dir: {base_project_dir}")
+    # project_root and logs_dir are already defined using the new config manager at the top of the script
+    logger.info(f"Using Project Root: {project_root}")
+    logger.info(f"Logs Directory: {logs_dir}")
 
-    # Load config
-    try:
-        with open(config_path, 'r') as f:
-            config = json.load(f)
-        logger.info(f"Loaded A2A server config from {config_path}")
-    except Exception as e:
-        logger.critical(f"Failed to load A2A server config from {config_path}: {e}", exc_info=True)
-        sys.exit(1)
+    # --- Load configuration using ConfigManager ---
+    # 'config' is the imported ConfigManager instance
+    host = config.get_str("a2a_server.host", "127.0.0.1")
+    port = config.get_int("a2a_server.port", 8080)
+    
+    # Get storage_path, ensuring it's absolute.
+    # default_storage_path uses project_root from ConfigManager.
+    default_storage_path = os.path.join(project_root, "system_data", "a2a_storage.json")
+    storage_path = config.get_path("a2a_server.storage_path", default_storage_path)
+    
+    # Get log_level for A2A components, falling back to global, then to INFO.
+    # This 'a2a_component_log_level_str' will be used in the try-except block below,
+    # which was already correctly modified by the previous diff.
+    a2a_component_log_level_str = config.get_str(
+        "a2a_server.log_level",
+        config.get_str("global.log_level", "INFO")
+    ).upper()
 
-    host = config.get("host", "127.0.0.1")
-    port = config.get("port", 8080)
-    storage_path = config.get("storage_path", os.path.join(base_project_dir, "system_data/a2a_storage.json"))
-    log_level_str = config.get("log_level", "INFO").upper()
+    logger.info(f"A2A Server Config: Host={host}, Port={port}, StoragePath={storage_path}, ComponentLogLevel={a2a_component_log_level_str}")
 
     # Configure logging level for the A2A server components if possible
     # (The server.py script uses logging.getLogger(__name__))
     # This sets the level for loggers acquired *after* this point.
     try:
-        log_level_enum = getattr(logging, log_level_str, logging.INFO)
-        # Set level for the root logger, affecting subsequent loggers unless they override
-        # logging.getLogger().setLevel(log_level_enum)
-        # Or specifically for the common package logger if needed:
+        log_level_enum = getattr(logging, a2a_component_log_level_str, logging.INFO)
+        # Set level specifically for the "common" package logger,
+        # or any other top-level logger used by the A2A server internals.
         logging.getLogger("common").setLevel(log_level_enum)
-        logger.info(f"Attempting to set log level for A2A components to: {log_level_str}")
+        # You might want to set levels for other specific loggers if known
+        logger.info(f"Attempting to set log level for A2A components (e.g., 'common') to: {a2a_component_log_level_str}")
     except Exception as e:
-        logger.warning(f"Could not set log level from config: {e}")
+        logger.warning(f"Could not set log level for A2A components from config: {e}", exc_info=True)
 
 
     # Ensure storage directory exists

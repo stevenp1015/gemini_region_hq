@@ -1,0 +1,86 @@
+# system_configs/config.toml
+# Main configuration file for the AI Minion Army Project
+
+# Global settings applicable to multiple components
+[global]
+# base_project_dir: Path to the project root.
+# If not set, it's inferred by components or can be overridden by BASE_PROJECT_DIR env var.
+# It's often best to let components determine this or rely on BASE_PROJECT_DIR.
+# base_project_dir = "." # Example if you want to explicitly set it relative to where config is loaded
+
+# Default log level for components (can be overridden per component or by env var like GLOBAL_LOG_LEVEL)
+log_level = "INFO"
+
+# Default logs directory, relative to the project root.
+# Can be overridden by LOGS_DIR env var.
+logs_dir = "logs"
+
+[a2a_server]
+# Configuration for the Agent-to-Agent Communication Server
+host = "127.0.0.1" # Host to bind the server to
+port = 8080        # Port for the server
+# Storage path for A2A server data (e.g., registered agents, message queues if persistent)
+# Relative to project root.
+storage_path = "system_data/a2a_storage.json"
+# Specific log level for the A2A server. Overrides global.log_level if set.
+# log_level = "DEBUG"
+
+[gui]
+# Configuration for the Management GUI
+host = "127.0.0.1" # Host for the GUI to run on
+port = 8081        # Port for the GUI
+
+# Polling intervals in seconds for various GUI update tasks
+commander_message_polling_interval = 10.0 # How often GUI checks for messages to STEVEN_GUI_COMMANDER
+server_status_polling_interval = 30.0   # How often GUI checks A2A server status
+minion_list_polling_interval = 60.0     # How often GUI refreshes the list of registered minions
+
+# The A2A server URL used by the GUI.
+# If commented out or missing, GUI will construct it from a2a_server.host and a2a_server.port.
+# Explicitly set if GUI needs to connect to a different A2A server than defined in [a2a_server]
+# a2a_server_url = "http://custom_a2a_host:custom_port"
+
+[minion_defaults]
+# Default settings applicable to all minions unless overridden by spawner or specific minion config
+a2a_client_polling_interval_seconds = 5.0 # How often minion's A2A client polls for messages
+# Default personality traits if not specified by the spawner
+# default_personality = "Adaptable, Resourceful, Meticulous"
+# Path to the minion guidelines JSON file, relative to project root.
+# The Minion's config_loader.py typically hardcodes this, but it could be made configurable.
+# guidelines_path = "system_configs/minion_guidelines.json"
+# Default log level for minions. Overrides global.log_level for minions if set.
+# log_level = "INFO"
+default_user_facing_name = "Minion" # Default user-facing name for minions
+
+[minion_spawner]
+# Configuration for the Minion Spawner script
+# Defines the minions to be spawned. This replaces the hardcoded list in spawn_legion.py.
+# Each minion definition is a table within the array.
+# 'id' and 'personality' are required for each minion.
+# Other minion_defaults (like log_level) can be overridden here on a per-minion basis.
+minions = [
+    { id = "Alpha", personality = "Strategic, Analytical, CalmUnderPressure" },
+    { id = "Bravo", personality = "Creative, Unconventional, Inquisitive" },
+    { id = "Charlie", personality = "Meticulous, DetailOriented, Skeptical" },
+    # Example of adding more minions or overriding defaults:
+    # { id = "Delta", personality = "Resourceful, Pragmatic, FastLearner", log_level = "DEBUG" },
+    # { id = "Echo", personality = "Empathetic, Communicative, Diplomatic" },
+]
+
+[llm]
+# Configuration related to Large Language Models
+# Specifies the environment variable name that holds the Gemini API Key.
+# The actual key should be in .env.legion, not here.
+gemini_api_key_env_var = "GEMINI_API_KEY_LEGION"
+# Example: If we need to specify different models or other LLM parameters in the future
+# model_name = "gemini-1.5-pro-latest"
+# temperature = 0.7
+[mcp_integration]
+enable_mcp_integration = false
+mcp_node_service_base_url = "http://localhost:3000"
+# Command to start the Node.js MCP service, relative to project root.
+# Ensure Node.js is in PATH or use an absolute path to node.
+mcp_node_service_startup_command = "node mcp_super_tool/src/main.js"
+# If true, the minion spawner or main minion will attempt to manage the lifecycle
+# of the mcp_node_service. If false, it's assumed to be run independently.
+manage_mcp_node_service_lifecycle = false

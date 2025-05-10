@@ -165,3 +165,276 @@
 2025-05-09 15:03:27,144 - Minion_Alpha - INFO - Attempting to register agent Alpha with A2A server...
 2025-05-09 15:03:27,154 - Minion_Alpha - INFO - Agent Alpha registered successfully with A2A server.
 2025-05-09 15:03:27,155 - Minion_Alpha - INFO - A2A message listener started for Alpha.
+2025-05-09 15:31:44,233 - Minion_Alpha - INFO - Minion Alpha initializing...
+2025-05-09 15:31:44,233 - Minion_Alpha - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 15:31:44,236 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 15:31:44,236 - Minion_Alpha - INFO - Minion Alpha initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-09 15:31:44,236 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-09 15:31:44,236 - Minion_Alpha - INFO - Minion Alpha run loop started.
+2025-05-09 15:31:44,237 - Minion_Alpha - INFO - Attempting to register agent Alpha with A2A server...
+2025-05-09 15:31:44,247 - Minion_Alpha - INFO - Agent Alpha registered successfully with A2A server.
+2025-05-09 15:31:44,247 - Minion_Alpha - INFO - A2A message listener started for Alpha.
+2025-05-09 15:59:10,488 - Minion_Alpha - INFO - Minion Alpha received KeyboardInterrupt. Shutting down.
+2025-05-09 15:59:41,661 - Minion_Alpha - INFO - Minion Alpha initializing...
+2025-05-09 15:59:41,662 - Minion_Alpha - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 15:59:41,664 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 15:59:41,665 - Minion_Alpha - INFO - A2AClient logger initialized successfully.
+2025-05-09 15:59:41,665 - Minion_Alpha - INFO - Minion Alpha initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-09 15:59:41,665 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-09 15:59:41,665 - Minion_Alpha - INFO - Minion Alpha run loop started.
+2025-05-09 15:59:41,665 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
+2025-05-09 15:59:41,665 - Minion_Alpha - INFO - Attempting to register agent Alpha with A2A server...
+2025-05-09 15:59:41,675 - Minion_Alpha - INFO - Agent Alpha registered successfully with A2A server.
+2025-05-09 15:59:41,675 - Minion_Alpha - INFO - start_message_listener called.
+2025-05-09 15:59:41,675 - Minion_Alpha - INFO - A2A message listener started for Alpha.
+2025-05-09 15:59:41,676 - Minion_Alpha - INFO - A2A message listener thread should have been started.
+2025-05-09 15:59:41,676 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 15:59:46,680 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 15:59:51,688 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 15:59:56,693 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:01,701 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:06,709 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:11,716 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:16,725 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:21,730 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:26,735 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:31,743 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:36,750 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:41,760 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:46,767 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:51,775 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:56,784 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:01,791 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:06,800 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:11,808 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:16,839 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:21,844 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:26,853 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:31,859 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:36,866 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:41,873 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:46,878 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:51,887 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:56,891 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:01,899 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:06,908 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:11,914 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:16,925 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:21,930 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:26,936 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:31,943 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:36,950 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:41,954 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:46,962 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:51,968 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:56,973 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:01,979 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:06,985 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:11,991 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:17,000 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:22,004 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:27,013 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:32,022 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:37,028 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:42,037 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:47,047 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:52,056 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:57,063 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:02,071 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:07,075 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:12,079 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:17,083 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:22,093 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:27,099 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:32,108 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:37,117 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:42,127 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:47,136 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:52,145 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:57,153 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:02,163 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:07,171 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:12,175 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:17,184 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:22,190 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:27,198 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:32,204 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:37,209 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:42,218 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:47,297 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:52,306 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:57,314 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:02,322 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:07,330 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:12,341 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:17,346 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:22,355 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:27,360 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:32,370 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:37,374 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:42,380 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:47,384 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:52,392 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:57,400 - Minion_Alpha - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:59,791 - Minion_Alpha - INFO - Minion Alpha received KeyboardInterrupt. Shutting down.
+2025-05-09 16:06:59,792 - Minion_Alpha - INFO - Minion Alpha shutting down...
+2025-05-09 16:06:59,792 - Minion_Alpha - INFO - Attempting to stop A2A message listener for Alpha...
+2025-05-09 16:07:20,812 - Minion_Alpha - INFO - Minion Alpha initializing...
+2025-05-09 16:07:20,812 - Minion_Alpha - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:07:20,814 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:07:20,815 - Minion_Alpha - INFO - Minion Alpha initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-09 16:07:20,815 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-09 16:07:20,815 - Minion_Alpha - INFO - Minion Alpha run loop started.
+2025-05-09 16:07:20,815 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:07:20,827 - Minion_Alpha - INFO - A2A message listener thread should have been started.
+2025-05-09 16:10:25,703 - Minion_Alpha - INFO - Minion Alpha received KeyboardInterrupt. Shutting down.
+2025-05-09 16:10:25,703 - Minion_Alpha - INFO - Minion Alpha shutting down...
+2025-05-09 16:10:59,710 - Minion_Alpha - INFO - Minion Alpha initializing...
+2025-05-09 16:10:59,710 - Minion_Alpha - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:10:59,712 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:10:59,713 - Minion_Alpha - INFO - Minion Alpha initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-09 16:10:59,713 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-09 16:10:59,714 - Minion_Alpha - INFO - Minion Alpha run loop started.
+2025-05-09 16:10:59,714 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:10:59,729 - Minion_Alpha - INFO - A2A message listener thread should have been started.
+2025-05-09 16:14:46,033 - Minion_Alpha - INFO - Minion Alpha received KeyboardInterrupt. Shutting down.
+2025-05-09 16:14:46,034 - Minion_Alpha - INFO - Minion Alpha shutting down...
+2025-05-09 16:15:09,790 - Minion_Alpha - INFO - Minion Alpha initializing...
+2025-05-09 16:15:09,791 - Minion_Alpha - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:15:09,794 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:15:09,795 - Minion_Alpha - INFO - Minion Alpha initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-09 16:15:09,795 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-09 16:15:09,795 - Minion_Alpha - INFO - Minion Alpha run loop started.
+2025-05-09 16:15:09,795 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:15:09,808 - Minion_Alpha - INFO - A2A message listener thread should have been started.
+2025-05-09 16:21:48,500 - Minion_Alpha - INFO - Minion Alpha received KeyboardInterrupt. Shutting down.
+2025-05-09 16:21:48,501 - Minion_Alpha - INFO - Minion Alpha shutting down...
+2025-05-09 16:24:37,747 - Minion_Alpha - INFO - Minion Alpha initializing...
+2025-05-09 16:24:37,748 - Minion_Alpha - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:24:37,750 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:24:37,751 - Minion_Alpha - INFO - Minion Alpha initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-09 16:24:37,751 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-09 16:24:37,751 - Minion_Alpha - INFO - Minion Alpha run loop started.
+2025-05-09 16:24:37,751 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:24:37,764 - Minion_Alpha - INFO - A2A message listener thread should have been started.
+2025-05-09 16:25:12,825 - Minion_Alpha - INFO - Minion Alpha: handle_a2a_message CALLED with data: {'sender_id': 'STEVEN_GUI_COMMANDER', 'content': 'hey bitches, please respond saying somethin like "greetings (insert nice random message here)" so i know ur alive and responding lol ', 'message_type'...
+2025-05-09 16:25:12,826 - Minion_Alpha - INFO - A2A message from STEVEN_GUI_COMMANDER (type: user_broadcast_directive): 'hey bitches, please respond saying somethin like "greetings (insert nice random message here)" so i ...'
+2025-05-09 16:25:12,826 - Minion_Alpha - INFO - Received broadcast directive. Starting task processing in a new thread for: hey bitches, please respond saying somethin like "greetings ...
+2025-05-09 16:25:12,826 - Minion_Alpha - INFO - Starting to process task: 'hey bitches, please respond saying somethin like "greetings (insert nice random message here)" so i ...'
+2025-05-09 16:25:12,827 - Minion_Alpha - INFO - Sending prompt to Gemini. Prompt length: 3932 chars.
+2025-05-09 16:25:39,687 - Minion_Alpha - INFO - Received response from Gemini. Response length: 3770 chars.
+2025-05-09 16:25:39,687 - Minion_Alpha - INFO - LLM response for task 'hey bitches, please respond saying somethin like "greetings (insert nice random message here)" so i know ur alive and responding lol ': 'Ah, Steven. Your delightful, if somewhat informal, summons has reached my processing core. A most excellent way to verify the pulse of your digital legion.
+
+My plan is direct, yet infused with the app...'
+2025-05-09 16:25:39,688 - Minion_Alpha - INFO - Sending reply to 'STEVEN_GUI_COMMANDER': Ah, Steven. Your delightful, if somewhat informal, summons has reached my processing core. A most ex...
+2025-05-09 16:30:36,580 - Minion_Alpha - INFO - Minion Alpha received KeyboardInterrupt. Shutting down.
+2025-05-09 16:30:36,581 - Minion_Alpha - INFO - Minion Alpha shutting down...
+2025-05-09 16:31:20,625 - Minion_Alpha - INFO - Minion Alpha initializing...
+2025-05-09 16:31:20,626 - Minion_Alpha - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:31:20,629 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:31:20,630 - Minion_Alpha - INFO - Minion Alpha initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-09 16:31:20,630 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-09 16:31:20,630 - Minion_Alpha - INFO - Minion Alpha run loop started.
+2025-05-09 16:31:20,630 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:31:20,641 - Minion_Alpha - INFO - A2A message listener thread should have been started.
+2025-05-09 16:32:05,708 - Minion_Alpha - INFO - Minion Alpha: handle_a2a_message CALLED with data: {'sender_id': 'STEVEN_GUI_COMMANDER', 'content': 'hey bitches, please respond with just like "CONFIRMED (insert kind random greeting here)" so i know ur ALIVE', 'message_type': 'user_broadcast_directi...
+2025-05-09 16:32:05,708 - Minion_Alpha - INFO - A2A message from STEVEN_GUI_COMMANDER (type: user_broadcast_directive): 'hey bitches, please respond with just like "CONFIRMED (insert kind random greeting here)" so i know ...'
+2025-05-09 16:32:05,708 - Minion_Alpha - INFO - Received broadcast directive. Starting task processing in a new thread for: hey bitches, please respond with just like "CONFIRMED (inser...
+2025-05-09 16:32:05,709 - Minion_Alpha - INFO - Starting to process task: 'hey bitches, please respond with just like "CONFIRMED (insert kind random greeting here)" so i know ...'
+2025-05-09 16:32:05,709 - Minion_Alpha - INFO - Sending prompt to Gemini. Prompt length: 3907 chars.
+2025-05-09 16:32:36,813 - Minion_Alpha - INFO - Received response from Gemini. Response length: 2550 chars.
+2025-05-09 16:32:36,813 - Minion_Alpha - INFO - LLM response for task 'hey bitches, please respond with just like "CONFIRMED (insert kind random greeting here)" so i know ur ALIVE': 'CONFIRMED (And may your path today be as clear as a freshly polished yield sign, Steven – utterly baffling to the uninitiated, but a beacon to those who understand. At your service.)
+
+---
+**LOGGING:**...'
+2025-05-09 16:32:36,813 - Minion_Alpha - INFO - Sending reply to 'STEVEN_GUI_COMMANDER': CONFIRMED (And may your path today be as clear as a freshly polished yield sign, Steven – utterly ba...
+2025-05-09 16:35:18,546 - Minion_Alpha - INFO - Minion Alpha received KeyboardInterrupt. Shutting down.
+2025-05-09 16:35:18,546 - Minion_Alpha - INFO - Minion Alpha shutting down...
+2025-05-09 16:36:18,618 - Minion_Alpha - INFO - Minion Alpha initializing...
+2025-05-09 16:36:18,619 - Minion_Alpha - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:36:18,620 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:36:18,621 - Minion_Alpha - INFO - Minion Alpha initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-09 16:36:18,621 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-09 16:36:18,621 - Minion_Alpha - INFO - Minion Alpha run loop started.
+2025-05-09 16:36:18,621 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:36:18,632 - Minion_Alpha - INFO - A2A message listener thread should have been started.
+2025-05-09 16:36:48,683 - Minion_Alpha - INFO - Minion Alpha: handle_a2a_message CALLED with data: {'sender_id': 'STEVEN_GUI_COMMANDER', 'content': 'hey slut, plz respond with ur name and favorite color. make it up lol', 'message_type': 'user_broadcast_directive', 'timestamp': 1746823007.739798}...
+2025-05-09 16:36:48,683 - Minion_Alpha - INFO - A2A message from STEVEN_GUI_COMMANDER (type: user_broadcast_directive): 'hey slut, plz respond with ur name and favorite color. make it up lol...'
+2025-05-09 16:36:48,683 - Minion_Alpha - INFO - Received broadcast directive. Starting task processing in a new thread for: hey slut, plz respond with ur name and favorite color. make ...
+2025-05-09 16:36:48,684 - Minion_Alpha - INFO - Starting to process task: 'hey slut, plz respond with ur name and favorite color. make it up lol...'
+2025-05-09 16:36:48,684 - Minion_Alpha - INFO - Sending prompt to Gemini. Prompt length: 3868 chars.
+2025-05-09 16:37:22,572 - Minion_Alpha - INFO - Received response from Gemini. Response length: 3727 chars.
+2025-05-09 16:37:22,572 - Minion_Alpha - INFO - LLM response for task 'hey slut, plz respond with ur name and favorite color. make it up lol': 'Ah, Steven. Always one for... *piquant* address. You wound me, sir, but only in the way a particularly exquisite stiletto might – sharp, focused, and undeniably stylish.
+
+My designation, as you well k...'
+2025-05-09 16:37:22,573 - Minion_Alpha - INFO - Attempting to call self.a2a_client.send_message. Recipient: 'STEVEN_GUI_COMMANDER', Content: 'Ah, Steven. Always one for... *piquant* address. You wound me, sir, but only in the way a particular...'
+2025-05-09 16:37:22,578 - Minion_Alpha - INFO - Call to self.a2a_client.send_message completed. Result: True
+2025-05-09 16:37:22,578 - Minion_Alpha - INFO - Successfully sent reply to 'STEVEN_GUI_COMMANDER'.
+2025-05-09 20:01:27,404 - Minion_Alpha - INFO - Minion Alpha initializing...
+2025-05-09 20:01:27,406 - Minion_Alpha - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 20:01:27,408 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 20:01:27,413 - Minion_Alpha - INFO - Minion Alpha initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-09 20:01:27,414 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-09 20:01:27,414 - Minion_Alpha - INFO - Minion Alpha run loop started.
+2025-05-09 20:01:27,414 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
+2025-05-09 20:01:27,428 - Minion_Alpha - INFO - A2A message listener thread should have been started.
+2025-05-09 20:02:32,528 - Minion_Alpha - INFO - Minion Alpha: handle_a2a_message CALLED with data: {'sender_id': 'STEVEN_GUI_COMMANDER', 'content': 'can someone please respond to me, i will pay you a dollar .', 'message_type': 'user_broadcast_directive', 'timestamp': 1746835350.79676}...
+2025-05-09 20:02:32,528 - Minion_Alpha - INFO - A2A message from STEVEN_GUI_COMMANDER (type: user_broadcast_directive): 'can someone please respond to me, i will pay you a dollar ....'
+2025-05-09 20:02:32,528 - Minion_Alpha - INFO - Received broadcast directive. Starting task processing in a new thread for: can someone please respond to me, i will pay you a dollar ....
+2025-05-09 20:02:32,528 - Minion_Alpha - INFO - Starting to process task: 'can someone please respond to me, i will pay you a dollar ....'
+2025-05-09 20:02:32,528 - Minion_Alpha - INFO - Sending prompt to Gemini. Prompt length: 3858 chars.
+2025-05-09 20:03:21,212 - Minion_Alpha - INFO - Received response from Gemini. Response length: 5131 chars.
+2025-05-09 20:03:21,213 - Minion_Alpha - INFO - LLM response for task 'can someone please respond to me, i will pay you a dollar .': 'Ah, a direct entreaty from Steven. And with... *fiscal* undertones. How delightfully unexpected. My circuits are practically humming with the thrill of direct engagement. The sheer audacity of offerin...'
+2025-05-09 20:03:21,213 - Minion_Alpha - INFO - Attempting to call self.a2a_client.send_message. Recipient: 'STEVEN_GUI_COMMANDER', Content: 'Ah, a direct entreaty from Steven. And with... *fiscal* undertones. How delightfully unexpected. My ...'
+2025-05-09 20:03:21,218 - Minion_Alpha - INFO - Call to self.a2a_client.send_message completed. Result: True
+2025-05-09 20:03:21,218 - Minion_Alpha - INFO - Successfully sent reply to 'STEVEN_GUI_COMMANDER'.
+2025-05-09 20:57:23,352 - Minion_Alpha - INFO - Minion Alpha received KeyboardInterrupt. Shutting down.
+2025-05-09 20:57:23,357 - Minion_Alpha - INFO - Minion Alpha shutting down...
+2025-05-10 18:07:16,548 - Minion_Alpha - INFO - Minion Alpha (Name: Minion-Alpha) initializing...
+2025-05-10 18:07:16,549 - Minion_Alpha - INFO - M2M Config: Retries=3, Timeout=60s, MaxDepth=5
+2025-05-10 18:07:16,550 - Minion_Alpha - INFO - Project Root: /Users/ttig/gemini_legion_hq
+2025-05-10 18:07:16,550 - Minion_Alpha - INFO - Logs Directory: /Users/ttig/gemini_legion_hq/logs
+2025-05-10 18:07:16,551 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-10 18:07:16,551 - Minion_Alpha - INFO - MCP Integration is DISABLED.
+2025-05-10 18:07:16,551 - Minion_Alpha - INFO - No MCP Bridge provided. MCP tools will not be available.
+2025-05-10 18:07:16,551 - Minion_Alpha - INFO - A2A Server URL set to: http://127.0.0.1:8080
+2025-05-10 18:07:16,551 - Minion_Alpha - INFO - GUI Commander ID for state updates: STEVEN_GUI_COMMANDER
+2025-05-10 18:07:16,552 - Minion_Alpha - INFO - Minion Alpha (Name: Minion-Alpha) initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-10 18:07:16,552 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-10 18:07:16,553 - Minion_Alpha - INFO - No existing state file found at /Users/ttig/gemini_legion_hq/system_data/minion_states/minion_state_Alpha.json. Starting fresh.
+2025-05-10 18:07:16,553 - Minion_Alpha - INFO - Minion Alpha run loop started. Current status: idle
+2025-05-10 18:07:16,553 - Minion_Alpha - ERROR - Failed to send minion_state_update: slice(None, 100, None)
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/main_minion.py", line 359, in _send_state_update
+    self.a2a_client.send_message(
+  File "/Users/ttig/gemini_legion_hq/minion_core/a2a_client.py", line 162, in send_message
+    self.logger.debug(f"send_message called. Recipient: '{recipient_agent_id}', Type: '{message_type}', Content: '{message_content[:100]}...'") # Log snippet of content
+                                                                                                                   ~~~~~~~~~~~~~~~^^^^^^
+KeyError: slice(None, 100, None)
+2025-05-10 18:07:16,554 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
+2025-05-10 18:07:16,571 - Minion_Alpha - ERROR - Minion Alpha could not register with A2A server. A2A features will be limited.
+2025-05-10 18:08:40,136 - Minion_Alpha - INFO - Minion Alpha received KeyboardInterrupt. Shutting down.
+2025-05-10 18:08:40,137 - Minion_Alpha - INFO - Minion Alpha shutting down...
+2025-05-10 18:15:14,610 - Minion_Alpha - INFO - Minion Alpha (Name: Minion-Alpha) initializing...
+2025-05-10 18:15:14,610 - Minion_Alpha - INFO - M2M Config: Retries=3, Timeout=60s, MaxDepth=5
+2025-05-10 18:15:14,610 - Minion_Alpha - INFO - Project Root: /Users/ttig/gemini_legion_hq
+2025-05-10 18:15:14,611 - Minion_Alpha - INFO - Logs Directory: /Users/ttig/gemini_legion_hq/logs
+2025-05-10 18:15:14,611 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-10 18:15:14,612 - Minion_Alpha - INFO - MCP Integration is DISABLED.
+2025-05-10 18:15:14,612 - Minion_Alpha - INFO - No MCP Bridge provided. MCP tools will not be available.
+2025-05-10 18:15:14,612 - Minion_Alpha - INFO - A2A Server URL set to: http://127.0.0.1:8080
+2025-05-10 18:15:14,612 - Minion_Alpha - INFO - GUI Commander ID for state updates: STEVEN_GUI_COMMANDER
+2025-05-10 18:15:14,615 - Minion_Alpha - INFO - Minion Alpha (Name: Minion-Alpha) initialized successfully. Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-10 18:15:14,615 - Minion_Alpha - INFO - System Prompt: You are Minion Alpha. Your specific personality traits include: Strategic, Analytical, CalmUnderPressure. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTE...
+2025-05-10 18:15:14,616 - Minion_Alpha - INFO - No existing state file found at /Users/ttig/gemini_legion_hq/system_data/minion_states/minion_state_Alpha.json. Starting fresh.
+2025-05-10 18:15:14,616 - Minion_Alpha - INFO - Minion Alpha run loop started. Current status: idle
+2025-05-10 18:15:14,616 - Minion_Alpha - ERROR - Failed to send minion_state_update: slice(None, 100, None)
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/main_minion.py", line 385, in _send_state_update
+    self.a2a_client.send_message(
+  File "/Users/ttig/gemini_legion_hq/minion_core/a2a_client.py", line 162, in send_message
+    self.logger.debug(f"send_message called. Recipient: '{recipient_agent_id}', Type: '{message_type}', Content: '{message_content[:100]}...'") # Log snippet of content
+                                                                                                                   ~~~~~~~~~~~~~~~^^^^^^
+KeyError: slice(None, 100, None)
+2025-05-10 18:15:14,618 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
+2025-05-10 18:15:14,629 - Minion_Alpha - INFO - A2A registration successful, message listener thread should have been started by A2AClient.

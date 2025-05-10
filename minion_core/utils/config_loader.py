@@ -1,54 +1,63 @@
 import json
 import os
-from dotenv import load_dotenv
+import sys # Added for sys.path manipulation if needed for config_manager import
+
+# Ensure the project root is in sys.path to find system_configs.config_manager
+project_root_for_imports = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if project_root_for_imports not in sys.path:
+    sys.path.insert(0, project_root_for_imports)
+
+from system_configs.config_manager import config # Import the global config instance
 from .logger import setup_logger
 
-# Path relative to this script's location might be fragile if script is moved.
-# Better to use absolute paths or paths relative to a known project root.
-# For this deployment, assuming BASE_PROJECT_DIR is accessible or passed.
-# This will be refined when the Minion class uses it.
 
-DEFAULT_GUIDELINES_PATH = os.path.join(os.getenv("BASE_PROJECT_DIR", "../.."), "system_configs/minion_guidelines.json") # Adjust path as needed
-DEFAULT_ENV_PATH = os.path.join(os.getenv("BASE_PROJECT_DIR", "../.."), "system_configs/.env.legion")
+# Logger for this utility - its path can also be derived from global config
+# However, this logger is specific to this file's operations.
+# ConfigManager already logs its own activities.
+_utils_logs_dir = config.get_path("global.logs_dir", os.path.join(config.get_project_root(), "logs"))
+_utils_config_loader_log_file = os.path.join(_utils_logs_dir, "utils_config_loader.log")
+config_loader_logger = setup_logger("UtilsConfigLoader", _utils_config_loader_log_file)
 
-# Logger for config loading issues
-config_logger = setup_logger("ConfigLoader", os.path.join(os.getenv("BASE_PROJECT_DIR", "../.."), "logs/config_loader.log"))
 
-def load_minion_guidelines(guidelines_path=None):
-    """Loads the Minion guidelines JSON file."""
-    path_to_load = guidelines_path if guidelines_path else DEFAULT_GUIDELINES_PATH
+def load_minion_guidelines(guidelines_path_override=None):
+    """
+    Loads the Minion guidelines JSON file.
+    The path can be specified in config.toml under 'minion_defaults.guidelines_path'.
+    An explicit override path can also be provided as an argument.
+    """
+    default_guidelines_filename = "minion_guidelines.json"
+    
+    # Priority: argument override > config file path > default path construction
+    path_to_load = guidelines_path_override
+    
+    if not path_to_load:
+        # Try to get path from config.toml
+        # Uses get_path which resolves relative to project_root
+        path_from_config = config.get_path("minion_defaults.guidelines_path")
+        if path_from_config:
+            path_to_load = path_from_config
+        else:
+            # Fallback to default construction if not in config
+            path_to_load = os.path.join(config.get_project_root(), "system_configs", default_guidelines_filename)
+            config_loader_logger.debug(f"minion_defaults.guidelines_path not in config.toml, using default: {path_to_load}")
+
+    config_loader_logger.info(f"Attempting to load Minion guidelines from: {path_to_load}")
     try:
         with open(path_to_load, 'r', encoding='utf-8') as f:
             guidelines = json.load(f)
-        config_logger.info(f"Successfully loaded Minion guidelines from: {path_to_load}")
+        config_loader_logger.info(f"Successfully loaded Minion guidelines from: {path_to_load}")
         return guidelines
     except FileNotFoundError:
-        config_logger.error(f"Minion guidelines file not found at: {path_to_load}")
+        config_loader_logger.error(f"Minion guidelines file not found at: {path_to_load}")
     except json.JSONDecodeError:
-        config_logger.error(f"Error decoding JSON from Minion guidelines file: {path_to_load}")
+        config_loader_logger.error(f"Error decoding JSON from Minion guidelines file: {path_to_load}", exc_info=True)
     except Exception as e:
-        config_logger.error(f"An unexpected error occurred while loading guidelines from {path_to_load}: {e}")
-    # BIAS_ACTION: Robust error handling for file loading. Return None on failure.
+        config_loader_logger.error(f"An unexpected error occurred while loading guidelines from {path_to_load}: {e}", exc_info=True)
     return None
 
-def get_gemini_api_key(env_path=None):
-    """Loads the Gemini API key from the .env.legion file."""
-    path_to_load = env_path if env_path else DEFAULT_ENV_PATH
-    
-    # load_dotenv will search for a .env file in the current directory or parent directories,
-    # or a specific path if provided via dotenv_path.
-    # For this script, we want to load a *specific* .env file.
-    if os.path.exists(path_to_load):
-        load_dotenv(dotenv_path=path_to_load, override=True) # Override ensures fresh load if called multiple times
-        api_key = os.getenv("GEMINI_API_KEY_LEGION")
-        if api_key:
-            config_logger.info(f"Successfully loaded GEMINI_API_KEY_LEGION from {path_to_load}")
-            return api_key
-        else:
-            config_logger.error(f"GEMINI_API_KEY_LEGION not found in {path_to_load} after loading.")
-            return None
-    else:
-        config_logger.error(f".env file for Minion Legion not found at: {path_to_load}")
-        return None
-
-# BIAS_CHECK: Ensured API key loading is explicit and logs errors rather than failing silently or using a default.
+# get_gemini_api_key function is removed.
+# The API key should be retrieved directly from environment variables (os.getenv)
+# after ConfigManager has loaded the .env file.
+# Example in main_minion.py:
+#   gemini_api_key_env_name = config.get_str("llm.gemini_api_key_env_var", "GEMINI_API_KEY_LEGION")
+#   api_key = os.getenv(gemini_api_key_env_name)

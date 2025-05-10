@@ -1,7 +1,15 @@
 import google.generativeai as genai
 import time
+import os
+import sys
+
+# Ensure the project root is in sys.path to find system_configs.config_manager
+project_root_for_imports = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if project_root_for_imports not in sys.path:
+    sys.path.insert(0, project_root_for_imports)
+
+from system_configs.config_manager import config # Import the global config instance
 from .utils.logger import setup_logger
-from .utils.config_loader import get_gemini_api_key
 
 # Logger setup will be handled by the Minion class that instantiates this.
 # This module assumes a logger is passed or configured globally.
@@ -15,10 +23,15 @@ class LLMInterface:
         self.minion_id = minion_id
         self.logger = logger if logger else setup_logger(f"LLMInterface_{minion_id}", f"llm_interface_{minion_id}.log") # Fallback logger
         
-        self.api_key = api_key if api_key else get_gemini_api_key()
+        if api_key:
+            self.api_key = api_key
+        else:
+            gemini_api_key_env_name = config.get_str("llm.gemini_api_key_env_var", "GEMINI_API_KEY_LEGION")
+            self.api_key = os.getenv(gemini_api_key_env_name)
+
         if not self.api_key:
-            self.logger.critical("Gemini API Key not found or provided. LLMInterface cannot function.")
-            raise ValueError("Gemini API Key is required for LLMInterface.")
+            self.logger.critical(f"Gemini API Key not found. Environment variable '{gemini_api_key_env_name}' is not set or no explicit API key was provided. LLMInterface cannot function.")
+            raise ValueError(f"Gemini API Key is required for LLMInterface. Check environment variable: {gemini_api_key_env_name}")
             
         try:
             genai.configure(api_key=self.api_key)

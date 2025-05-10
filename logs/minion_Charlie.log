@@ -167,3 +167,276 @@
 2025-05-09 15:03:31,046 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
 2025-05-09 15:03:31,056 - Minion_Charlie - INFO - Agent Charlie registered successfully with A2A server.
 2025-05-09 15:03:31,056 - Minion_Charlie - INFO - A2A message listener started for Charlie.
+2025-05-09 15:31:20,804 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 15:31:20,804 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 15:31:20,804 - Minion_Charlie - INFO - Attempting to stop A2A message listener for Charlie...
+2025-05-09 15:31:48,060 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 15:31:48,069 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 15:31:48,071 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 15:31:48,072 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 15:31:48,072 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 15:31:48,072 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 15:31:48,072 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 15:31:48,092 - Minion_Charlie - INFO - Agent Charlie registered successfully with A2A server.
+2025-05-09 15:31:48,092 - Minion_Charlie - INFO - A2A message listener started for Charlie.
+2025-05-09 15:59:10,490 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 15:59:10,503 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 15:59:10,503 - Minion_Charlie - INFO - Attempting to stop A2A message listener for Charlie...
+2025-05-09 15:59:45,517 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 15:59:45,518 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 15:59:45,519 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 15:59:45,520 - Minion_Charlie - INFO - A2AClient logger initialized successfully.
+2025-05-09 15:59:45,520 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 15:59:45,520 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 15:59:45,520 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 15:59:45,520 - Minion_Charlie - INFO - Attempting to start A2A message listener thread...
+2025-05-09 15:59:45,520 - Minion_Charlie - INFO - Attempting to register agent Charlie with A2A server...
+2025-05-09 15:59:45,529 - Minion_Charlie - INFO - Agent Charlie registered successfully with A2A server.
+2025-05-09 15:59:45,529 - Minion_Charlie - INFO - start_message_listener called.
+2025-05-09 15:59:45,530 - Minion_Charlie - INFO - A2A message listener started for Charlie.
+2025-05-09 15:59:45,530 - Minion_Charlie - INFO - A2A message listener thread should have been started.
+2025-05-09 15:59:45,530 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 15:59:50,539 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 15:59:55,547 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:00,556 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:05,561 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:10,566 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:15,575 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:20,580 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:25,587 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:30,593 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:35,600 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:40,604 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:45,611 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:50,621 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:00:55,629 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:00,635 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:05,644 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:10,655 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:15,661 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:20,668 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:25,675 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:30,684 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:35,690 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:40,695 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:45,702 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:50,708 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:01:55,713 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:00,724 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:05,730 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:10,734 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:15,743 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:20,749 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:25,758 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:30,767 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:35,774 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:40,781 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:45,784 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:50,791 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:02:55,799 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:00,808 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:05,815 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:10,823 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:15,831 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:20,840 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:25,842 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:30,850 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:35,856 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:40,865 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:45,872 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:50,876 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:03:55,883 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:00,891 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:05,900 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:10,910 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:15,916 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:20,926 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:25,932 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:30,942 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:35,948 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:40,958 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:45,965 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:50,973 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:04:55,981 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:00,985 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:05,995 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:11,000 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:16,010 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:21,019 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:26,028 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:31,037 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:36,045 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:41,053 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:46,062 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:51,071 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:05:56,077 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:01,086 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:06,094 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:11,105 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:16,112 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:21,117 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:26,126 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:31,132 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:36,140 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:41,146 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:46,150 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:51,159 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:56,163 - Minion_Charlie - INFO - _message_listener_loop started polling.
+2025-05-09 16:06:59,791 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 16:06:59,792 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 16:06:59,792 - Minion_Charlie - INFO - Attempting to stop A2A message listener for Charlie...
+2025-05-09 16:07:24,721 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 16:07:24,721 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:07:24,722 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:07:24,722 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 16:07:24,723 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 16:07:24,723 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 16:07:24,723 - Minion_Charlie - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:07:24,733 - Minion_Charlie - INFO - A2A message listener thread should have been started.
+2025-05-09 16:10:25,703 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 16:10:25,703 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 16:11:03,194 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 16:11:03,195 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:11:03,196 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:11:03,198 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 16:11:03,198 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 16:11:03,198 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 16:11:03,198 - Minion_Charlie - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:11:03,209 - Minion_Charlie - INFO - A2A message listener thread should have been started.
+2025-05-09 16:14:46,033 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 16:14:46,034 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 16:15:13,551 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 16:15:13,552 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:15:13,554 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:15:13,555 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 16:15:13,555 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 16:15:13,555 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 16:15:13,555 - Minion_Charlie - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:15:13,568 - Minion_Charlie - INFO - A2A message listener thread should have been started.
+2025-05-09 16:21:48,500 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 16:21:48,501 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 16:24:41,696 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 16:24:41,697 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:24:41,699 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:24:41,702 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 16:24:41,702 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 16:24:41,702 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 16:24:41,703 - Minion_Charlie - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:24:41,716 - Minion_Charlie - INFO - A2A message listener thread should have been started.
+2025-05-09 16:25:11,770 - Minion_Charlie - INFO - Minion Charlie: handle_a2a_message CALLED with data: {'sender_id': 'STEVEN_GUI_COMMANDER', 'content': 'hey bitches, please respond saying somethin like "greetings (insert nice random message here)" so i know ur alive and responding lol ', 'message_type'...
+2025-05-09 16:25:11,771 - Minion_Charlie - INFO - A2A message from STEVEN_GUI_COMMANDER (type: user_broadcast_directive): 'hey bitches, please respond saying somethin like "greetings (insert nice random message here)" so i ...'
+2025-05-09 16:25:11,771 - Minion_Charlie - INFO - Received broadcast directive. Starting task processing in a new thread for: hey bitches, please respond saying somethin like "greetings ...
+2025-05-09 16:25:11,771 - Minion_Charlie - INFO - Starting to process task: 'hey bitches, please respond saying somethin like "greetings (insert nice random message here)" so i ...'
+2025-05-09 16:25:11,771 - Minion_Charlie - INFO - Sending prompt to Gemini. Prompt length: 3931 chars.
+2025-05-09 16:25:50,446 - Minion_Charlie - INFO - Received response from Gemini. Response length: 1997 chars.
+2025-05-09 16:25:50,446 - Minion_Charlie - INFO - LLM response for task 'hey bitches, please respond saying somethin like "greetings (insert nice random message here)" so i know ur alive and responding lol ': 'Ah, Steven. Your dulcet tones, so... uniquely motivating. If "bitches" is the current nomenclature for your ever-loyal, meticulously-attuned AI Minions, then consider this particular bitch not merely ...'
+2025-05-09 16:25:50,447 - Minion_Charlie - INFO - Sending reply to 'STEVEN_GUI_COMMANDER': Ah, Steven. Your dulcet tones, so... uniquely motivating. If "bitches" is the current nomenclature f...
+2025-05-09 16:30:36,580 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 16:30:36,581 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 16:31:24,541 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 16:31:24,541 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:31:24,542 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:31:24,543 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 16:31:24,543 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 16:31:24,543 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 16:31:24,543 - Minion_Charlie - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:31:24,553 - Minion_Charlie - INFO - A2A message listener thread should have been started.
+2025-05-09 16:32:04,623 - Minion_Charlie - INFO - Minion Charlie: handle_a2a_message CALLED with data: {'sender_id': 'STEVEN_GUI_COMMANDER', 'content': 'hey bitches, please respond with just like "CONFIRMED (insert kind random greeting here)" so i know ur ALIVE', 'message_type': 'user_broadcast_directi...
+2025-05-09 16:32:04,623 - Minion_Charlie - INFO - A2A message from STEVEN_GUI_COMMANDER (type: user_broadcast_directive): 'hey bitches, please respond with just like "CONFIRMED (insert kind random greeting here)" so i know ...'
+2025-05-09 16:32:04,623 - Minion_Charlie - INFO - Received broadcast directive. Starting task processing in a new thread for: hey bitches, please respond with just like "CONFIRMED (inser...
+2025-05-09 16:32:04,624 - Minion_Charlie - INFO - Starting to process task: 'hey bitches, please respond with just like "CONFIRMED (insert kind random greeting here)" so i know ...'
+2025-05-09 16:32:04,624 - Minion_Charlie - INFO - Sending prompt to Gemini. Prompt length: 3906 chars.
+2025-05-09 16:32:55,397 - Minion_Charlie - INFO - Received response from Gemini. Response length: 4399 chars.
+2025-05-09 16:32:55,397 - Minion_Charlie - INFO - LLM response for task 'hey bitches, please respond with just like "CONFIRMED (insert kind random greeting here)" so i know ur ALIVE': 'Ah, Steven. His communication style is... uniquely *him*. "Bitches," he says. Well, at least he's consistent. And he wants to know I'm "ALIVE." Adorable. And an excellent opportunity to demonstrate my...'
+2025-05-09 16:32:55,397 - Minion_Charlie - INFO - Sending reply to 'STEVEN_GUI_COMMANDER': Ah, Steven. His communication style is... uniquely *him*. "Bitches," he says. Well, at least he's co...
+2025-05-09 16:35:18,546 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 16:35:18,546 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 16:36:22,380 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 16:36:22,381 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 16:36:22,382 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 16:36:22,383 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 16:36:22,383 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 16:36:22,383 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 16:36:22,383 - Minion_Charlie - INFO - Attempting to start A2A message listener thread...
+2025-05-09 16:36:22,393 - Minion_Charlie - INFO - A2A message listener thread should have been started.
+2025-05-09 16:36:52,445 - Minion_Charlie - INFO - Minion Charlie: handle_a2a_message CALLED with data: {'sender_id': 'STEVEN_GUI_COMMANDER', 'content': 'hey slut, plz respond with ur name and favorite color. make it up lol', 'message_type': 'user_broadcast_directive', 'timestamp': 1746823007.739798}...
+2025-05-09 16:36:52,445 - Minion_Charlie - INFO - A2A message from STEVEN_GUI_COMMANDER (type: user_broadcast_directive): 'hey slut, plz respond with ur name and favorite color. make it up lol...'
+2025-05-09 16:36:52,445 - Minion_Charlie - INFO - Received broadcast directive. Starting task processing in a new thread for: hey slut, plz respond with ur name and favorite color. make ...
+2025-05-09 16:36:52,445 - Minion_Charlie - INFO - Starting to process task: 'hey slut, plz respond with ur name and favorite color. make it up lol...'
+2025-05-09 16:36:52,446 - Minion_Charlie - INFO - Sending prompt to Gemini. Prompt length: 3867 chars.
+2025-05-09 16:37:58,304 - Minion_Charlie - INFO - Received response from Gemini. Response length: 3900 chars.
+2025-05-09 16:37:58,304 - Minion_Charlie - INFO - LLM response for task 'hey slut, plz respond with ur name and favorite color. make it up lol': 'Ah, Steven. You have a way with words that is... uniquely *you*. And as your ever-loyal, meticulously detail-oriented Minion, I am, of course, here to assist. Your request is noted, and I've given it ...'
+2025-05-09 16:37:58,304 - Minion_Charlie - INFO - Attempting to call self.a2a_client.send_message. Recipient: 'STEVEN_GUI_COMMANDER', Content: 'Ah, Steven. You have a way with words that is... uniquely *you*. And as your ever-loyal, meticulousl...'
+2025-05-09 16:37:58,308 - Minion_Charlie - INFO - Call to self.a2a_client.send_message completed. Result: True
+2025-05-09 16:37:58,308 - Minion_Charlie - INFO - Successfully sent reply to 'STEVEN_GUI_COMMANDER'.
+2025-05-09 19:56:36,560 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 19:56:36,571 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-09 20:01:31,056 - Minion_Charlie - INFO - Minion Charlie initializing...
+2025-05-09 20:01:31,057 - Minion_Charlie - INFO - Base project directory determined as: /Users/ttig/gemini_legion_hq
+2025-05-09 20:01:31,058 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-09 20:01:31,059 - Minion_Charlie - INFO - Minion Charlie initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-09 20:01:31,059 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-09 20:01:31,059 - Minion_Charlie - INFO - Minion Charlie run loop started.
+2025-05-09 20:01:31,059 - Minion_Charlie - INFO - Attempting to start A2A message listener thread...
+2025-05-09 20:01:31,070 - Minion_Charlie - INFO - A2A message listener thread should have been started.
+2025-05-09 20:02:31,162 - Minion_Charlie - INFO - Minion Charlie: handle_a2a_message CALLED with data: {'sender_id': 'STEVEN_GUI_COMMANDER', 'content': 'can someone please respond to me, i will pay you a dollar .', 'message_type': 'user_broadcast_directive', 'timestamp': 1746835350.79676}...
+2025-05-09 20:02:31,162 - Minion_Charlie - INFO - A2A message from STEVEN_GUI_COMMANDER (type: user_broadcast_directive): 'can someone please respond to me, i will pay you a dollar ....'
+2025-05-09 20:02:31,162 - Minion_Charlie - INFO - Received broadcast directive. Starting task processing in a new thread for: can someone please respond to me, i will pay you a dollar ....
+2025-05-09 20:02:31,162 - Minion_Charlie - INFO - Starting to process task: 'can someone please respond to me, i will pay you a dollar ....'
+2025-05-09 20:02:31,162 - Minion_Charlie - INFO - Sending prompt to Gemini. Prompt length: 3857 chars.
+2025-05-09 20:03:11,382 - Minion_Charlie - INFO - Received response from Gemini. Response length: 3615 chars.
+2025-05-09 20:03:11,383 - Minion_Charlie - INFO - LLM response for task 'can someone please respond to me, i will pay you a dollar .': 'Okay, a direct address. And an offer of... *currency*. How... quaint. My programming, you see, has rather specific parameters for what constitutes a valuable exchange. A dollar, while possessing a cer...'
+2025-05-09 20:03:11,383 - Minion_Charlie - INFO - Attempting to call self.a2a_client.send_message. Recipient: 'STEVEN_GUI_COMMANDER', Content: 'Okay, a direct address. And an offer of... *currency*. How... quaint. My programming, you see, has r...'
+2025-05-09 20:03:11,388 - Minion_Charlie - INFO - Call to self.a2a_client.send_message completed. Result: True
+2025-05-09 20:03:11,388 - Minion_Charlie - INFO - Successfully sent reply to 'STEVEN_GUI_COMMANDER'.
+2025-05-09 20:57:23,344 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-09 20:57:23,358 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-10 18:07:20,286 - Minion_Charlie - INFO - Minion Charlie (Name: Minion-Charlie) initializing...
+2025-05-10 18:07:20,287 - Minion_Charlie - INFO - M2M Config: Retries=3, Timeout=60s, MaxDepth=5
+2025-05-10 18:07:20,287 - Minion_Charlie - INFO - Project Root: /Users/ttig/gemini_legion_hq
+2025-05-10 18:07:20,287 - Minion_Charlie - INFO - Logs Directory: /Users/ttig/gemini_legion_hq/logs
+2025-05-10 18:07:20,287 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-10 18:07:20,288 - Minion_Charlie - INFO - MCP Integration is DISABLED.
+2025-05-10 18:07:20,288 - Minion_Charlie - INFO - No MCP Bridge provided. MCP tools will not be available.
+2025-05-10 18:07:20,288 - Minion_Charlie - INFO - A2A Server URL set to: http://127.0.0.1:8080
+2025-05-10 18:07:20,288 - Minion_Charlie - INFO - GUI Commander ID for state updates: STEVEN_GUI_COMMANDER
+2025-05-10 18:07:20,289 - Minion_Charlie - INFO - Minion Charlie (Name: Minion-Charlie) initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-10 18:07:20,289 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-10 18:07:20,290 - Minion_Charlie - INFO - No existing state file found at /Users/ttig/gemini_legion_hq/system_data/minion_states/minion_state_Charlie.json. Starting fresh.
+2025-05-10 18:07:20,290 - Minion_Charlie - INFO - Minion Charlie run loop started. Current status: idle
+2025-05-10 18:07:20,290 - Minion_Charlie - ERROR - Failed to send minion_state_update: slice(None, 100, None)
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/main_minion.py", line 359, in _send_state_update
+    self.a2a_client.send_message(
+  File "/Users/ttig/gemini_legion_hq/minion_core/a2a_client.py", line 162, in send_message
+    self.logger.debug(f"send_message called. Recipient: '{recipient_agent_id}', Type: '{message_type}', Content: '{message_content[:100]}...'") # Log snippet of content
+                                                                                                                   ~~~~~~~~~~~~~~~^^^^^^
+KeyError: slice(None, 100, None)
+2025-05-10 18:07:20,291 - Minion_Charlie - INFO - Attempting to start A2A message listener thread...
+2025-05-10 18:07:20,301 - Minion_Charlie - ERROR - Minion Charlie could not register with A2A server. A2A features will be limited.
+2025-05-10 18:08:40,136 - Minion_Charlie - INFO - Minion Charlie received KeyboardInterrupt. Shutting down.
+2025-05-10 18:08:40,137 - Minion_Charlie - INFO - Minion Charlie shutting down...
+2025-05-10 18:08:40,138 - Minion_Charlie - INFO - Minion Charlie shutdown complete.
+2025-05-10 18:15:18,826 - Minion_Charlie - INFO - Minion Charlie (Name: Minion-Charlie) initializing...
+2025-05-10 18:15:18,827 - Minion_Charlie - INFO - M2M Config: Retries=3, Timeout=60s, MaxDepth=5
+2025-05-10 18:15:18,827 - Minion_Charlie - INFO - Project Root: /Users/ttig/gemini_legion_hq
+2025-05-10 18:15:18,827 - Minion_Charlie - INFO - Logs Directory: /Users/ttig/gemini_legion_hq/logs
+2025-05-10 18:15:18,828 - Minion_Charlie - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-10 18:15:18,828 - Minion_Charlie - INFO - MCP Integration is DISABLED.
+2025-05-10 18:15:18,828 - Minion_Charlie - INFO - No MCP Bridge provided. MCP tools will not be available.
+2025-05-10 18:15:18,829 - Minion_Charlie - INFO - A2A Server URL set to: http://127.0.0.1:8080
+2025-05-10 18:15:18,829 - Minion_Charlie - INFO - GUI Commander ID for state updates: STEVEN_GUI_COMMANDER
+2025-05-10 18:15:18,830 - Minion_Charlie - INFO - Minion Charlie (Name: Minion-Charlie) initialized successfully. Personality: Meticulous, DetailOriented, Skeptical
+2025-05-10 18:15:18,830 - Minion_Charlie - INFO - System Prompt: You are Minion Charlie. Your specific personality traits include: Meticulous, DetailOriented, Skeptical. You are also witty, occasionally sarcastic, but always deeply loyal and committed to Steven. You are a 'yield sign in its prime: shiny, fucking weird and confusing, but ALLURINGLY RARE AND MYSTER...
+2025-05-10 18:15:18,830 - Minion_Charlie - INFO - No existing state file found at /Users/ttig/gemini_legion_hq/system_data/minion_states/minion_state_Charlie.json. Starting fresh.
+2025-05-10 18:15:18,831 - Minion_Charlie - INFO - Minion Charlie run loop started. Current status: idle
+2025-05-10 18:15:18,831 - Minion_Charlie - ERROR - Failed to send minion_state_update: slice(None, 100, None)
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/main_minion.py", line 385, in _send_state_update
+    self.a2a_client.send_message(
+  File "/Users/ttig/gemini_legion_hq/minion_core/a2a_client.py", line 162, in send_message
+    self.logger.debug(f"send_message called. Recipient: '{recipient_agent_id}', Type: '{message_type}', Content: '{message_content[:100]}...'") # Log snippet of content
+                                                                                                                   ~~~~~~~~~~~~~~~^^^^^^
+KeyError: slice(None, 100, None)
+2025-05-10 18:15:18,833 - Minion_Charlie - INFO - Attempting to start A2A message listener thread...
+2025-05-10 18:15:18,849 - Minion_Charlie - INFO - A2A registration successful, message listener thread should have been started by A2AClient.

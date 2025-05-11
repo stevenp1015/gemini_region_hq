@@ -438,3 +438,342 @@ Traceback (most recent call last):
 KeyError: slice(None, 100, None)
 2025-05-10 18:15:14,618 - Minion_Alpha - INFO - Attempting to start A2A message listener thread...
 2025-05-10 18:15:14,629 - Minion_Alpha - INFO - A2A registration successful, message listener thread should have been started by A2AClient.
+2025-05-11 03:15:32,901 - Minion_Alpha - INFO - Minion Alpha received KeyboardInterrupt. Shutting down.
+2025-05-11 03:15:32,951 - Minion_Alpha - INFO - Minion Alpha shutting down...
+2025-05-11 03:40:31,311 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 03:40:31,311 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 03:40:31,315 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 03:40:31,316 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 03:40:31,316 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 03:40:31,353 - Minion_Alpha - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["version"],"msg":"Field required","input":{"id":"Alpha","name":"Minion-Alpha","description":"An AI Minion in Steven's Army. Personality: Strategic, Analytical, CalmUnderPressure","url":"http://127.0.0.1:8080/agents/Alpha","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills"],"msg":"Field required","input":{"id":"Alpha","name":"Minion-Alpha","description":"An AI Minion in Steven's Army. Personality: Strategic, Analytical, CalmUnderPressure","url":"http://127.0.0.1:8080/agents/Alpha","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:40:31,353 - Minion_Alpha - ERROR - Failed to register with A2A server
+2025-05-11 03:40:31,353 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 03:40:31,353 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 03:40:31,353 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 03:40:31,353 - Minion_Alpha - WARNING - Not registered. Attempting registration.
+2025-05-11 03:40:31,358 - Minion_Alpha - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["version"],"msg":"Field required","input":{"id":"Alpha","name":"Minion-Alpha","description":"An AI Minion in Steven's Army. Personality: Strategic, Analytical, CalmUnderPressure","url":"http://127.0.0.1:8080/agents/Alpha","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills"],"msg":"Field required","input":{"id":"Alpha","name":"Minion-Alpha","description":"An AI Minion in Steven's Army. Personality: Strategic, Analytical, CalmUnderPressure","url":"http://127.0.0.1:8080/agents/Alpha","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:40:31,358 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 03:46:42,223 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 03:46:42,223 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 03:46:42,227 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 03:46:42,227 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 03:46:42,227 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 03:46:42,232 - Minion_Alpha - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["version"],"msg":"Field required","input":{"id":"Alpha","name":"Minion-Alpha","description":"An AI Minion in Steven's Army. Personality: Strategic, Analytical, CalmUnderPressure","url":"http://127.0.0.1:8080/agents/Alpha","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills"],"msg":"Field required","input":{"id":"Alpha","name":"Minion-Alpha","description":"An AI Minion in Steven's Army. Personality: Strategic, Analytical, CalmUnderPressure","url":"http://127.0.0.1:8080/agents/Alpha","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:46:42,233 - Minion_Alpha - ERROR - Failed to register with A2A server
+2025-05-11 03:46:42,233 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 03:46:42,233 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 03:46:42,233 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 03:46:42,233 - Minion_Alpha - WARNING - Not registered. Attempting registration.
+2025-05-11 03:46:42,238 - Minion_Alpha - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["version"],"msg":"Field required","input":{"id":"Alpha","name":"Minion-Alpha","description":"An AI Minion in Steven's Army. Personality: Strategic, Analytical, CalmUnderPressure","url":"http://127.0.0.1:8080/agents/Alpha","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills"],"msg":"Field required","input":{"id":"Alpha","name":"Minion-Alpha","description":"An AI Minion in Steven's Army. Personality: Strategic, Analytical, CalmUnderPressure","url":"http://127.0.0.1:8080/agents/Alpha","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:46:42,238 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 03:59:28,183 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 03:59:28,183 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 03:59:28,188 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 03:59:28,188 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 03:59:28,188 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 03:59:28,196 - Minion_Alpha - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["skills",0,"id"],"msg":"Field required","input":{"name":"general_assistance","description":"Can perform general tasks and follow instructions."},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills",1,"id"],"msg":"Field required","input":{"name":"llm_interaction","description":"Can interact with Large Language Models."},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:59:28,196 - Minion_Alpha - ERROR - Failed to register with A2A server
+2025-05-11 03:59:28,196 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 03:59:28,197 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 03:59:28,197 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 03:59:28,197 - Minion_Alpha - WARNING - Not registered. Attempting registration.
+2025-05-11 03:59:28,200 - Minion_Alpha - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["skills",0,"id"],"msg":"Field required","input":{"name":"general_assistance","description":"Can perform general tasks and follow instructions."},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills",1,"id"],"msg":"Field required","input":{"name":"llm_interaction","description":"Can interact with Large Language Models."},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:59:28,200 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 04:02:27,044 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 04:02:27,047 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 04:02:27,052 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 04:02:27,052 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 04:02:27,052 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 04:02:27,059 - Minion_Alpha - INFO - Successfully registered agent Alpha
+2025-05-11 04:02:27,059 - Minion_Alpha - INFO - Server assigned different ID: Minion-Alpha. Updating.
+2025-05-11 04:02:27,059 - Minion_Alpha - INFO - A2A client initialized and registered
+2025-05-11 04:02:27,059 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 04:02:27,060 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 04:02:27,060 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 04:02:27,063 - Minion_Alpha - INFO - Starting message polling loop for Minion-Alpha
+2025-05-11 04:02:27,064 - Minion_Alpha - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 04:02:27,064 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 15:39:51,046 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 15:39:51,047 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 15:39:51,053 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 15:39:51,053 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 15:39:51,053 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 15:39:51,062 - Minion_Alpha - INFO - Successfully registered agent Alpha
+2025-05-11 15:39:51,062 - Minion_Alpha - INFO - Server assigned different ID: Minion-Alpha. Updating.
+2025-05-11 15:39:51,063 - Minion_Alpha - INFO - A2A client initialized and registered
+2025-05-11 15:39:51,063 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 15:39:51,063 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 15:39:51,063 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 15:39:51,067 - Minion_Alpha - INFO - Starting message polling loop for Minion-Alpha
+2025-05-11 15:39:51,074 - Minion_Alpha - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 15:39:51,074 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 15:44:27,813 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 15:44:27,813 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 15:44:27,818 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 15:44:27,818 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 15:44:27,818 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 15:44:27,821 - Minion_Alpha - ERROR - Exception during registration: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1115, in _wrap_create_connection
+    sock = await aiohappyeyeballs.start_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 122, in start_connection
+    raise first_exception
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 73, in start_connection
+    sock = await _connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 208, in _connect_sock
+    await loop.sock_connect(sock, address)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 651, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 691, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8080)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/a2a_async_client.py", line 55, in register_agent
+    async with self.session.post(url, json=self.agent_card) as response:
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 1425, in __aenter__
+    self._resp: _RetType = await self._coro
+                           ^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 703, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 548, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1056, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1406, in _create_direct_connection
+    raise last_exc
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1375, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1130, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+2025-05-11 15:44:27,826 - Minion_Alpha - ERROR - Failed to register with A2A server
+2025-05-11 15:44:27,826 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 15:44:27,827 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 15:44:27,827 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 15:44:27,827 - Minion_Alpha - WARNING - Not registered. Attempting registration.
+2025-05-11 15:44:27,833 - Minion_Alpha - ERROR - Exception during registration: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1115, in _wrap_create_connection
+    sock = await aiohappyeyeballs.start_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 122, in start_connection
+    raise first_exception
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 73, in start_connection
+    sock = await _connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 208, in _connect_sock
+    await loop.sock_connect(sock, address)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 651, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 691, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8080)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/a2a_async_client.py", line 55, in register_agent
+    async with self.session.post(url, json=self.agent_card) as response:
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 1425, in __aenter__
+    self._resp: _RetType = await self._coro
+                           ^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 703, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 548, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1056, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1406, in _create_direct_connection
+    raise last_exc
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1375, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1130, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+2025-05-11 15:44:27,834 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 15:47:24,375 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 15:47:24,376 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 15:47:24,380 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 15:47:24,380 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 15:47:24,380 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 15:47:24,384 - Minion_Alpha - INFO - Successfully registered agent Alpha
+2025-05-11 15:47:24,385 - Minion_Alpha - INFO - Server assigned different ID: Minion-Alpha. Updating.
+2025-05-11 15:47:24,385 - Minion_Alpha - INFO - A2A client initialized and registered
+2025-05-11 15:47:24,385 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 15:47:24,385 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 15:47:24,385 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 15:47:24,385 - Minion_Alpha - INFO - Starting message polling loop for Minion-Alpha
+2025-05-11 15:47:24,389 - Minion_Alpha - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 15:47:24,389 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 16:17:08,923 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 16:17:08,923 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 16:17:08,927 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 16:17:08,927 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 16:17:08,927 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 16:17:08,930 - Minion_Alpha - ERROR - Exception during registration: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1115, in _wrap_create_connection
+    sock = await aiohappyeyeballs.start_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 122, in start_connection
+    raise first_exception
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 73, in start_connection
+    sock = await _connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 208, in _connect_sock
+    await loop.sock_connect(sock, address)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 651, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 691, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8080)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/minion_core/a2a_async_client.py", line 55, in register_agent
+    async with self.session.post(url, json=self.agent_card) as response:
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 1425, in __aenter__
+    self._resp: _RetType = await self._coro
+                           ^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 703, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 548, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1056, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1406, in _create_direct_connection
+    raise last_exc
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1375, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1130, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+2025-05-11 16:17:08,936 - Minion_Alpha - ERROR - Failed to register with A2A server
+2025-05-11 16:17:08,937 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 16:17:08,937 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 16:17:08,937 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 16:17:08,937 - Minion_Alpha - WARNING - Not registered. Attempting registration.
+2025-05-11 16:17:08,944 - Minion_Alpha - ERROR - Exception during registration: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1115, in _wrap_create_connection
+    sock = await aiohappyeyeballs.start_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 122, in start_connection
+    raise first_exception
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 73, in start_connection
+    sock = await _connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 208, in _connect_sock
+    await loop.sock_connect(sock, address)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 651, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 691, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8080)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/minion_core/a2a_async_client.py", line 55, in register_agent
+    async with self.session.post(url, json=self.agent_card) as response:
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 1425, in __aenter__
+    self._resp: _RetType = await self._coro
+                           ^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 703, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 548, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1056, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1406, in _create_direct_connection
+    raise last_exc
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1375, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1130, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+2025-05-11 16:17:08,945 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 16:18:57,866 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 16:18:57,866 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 16:18:57,870 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 16:18:57,870 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 16:18:57,871 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 16:18:57,878 - Minion_Alpha - INFO - Successfully registered agent Alpha
+2025-05-11 16:18:57,878 - Minion_Alpha - INFO - Server assigned different ID: Minion-Alpha. Updating.
+2025-05-11 16:18:57,878 - Minion_Alpha - INFO - A2A client initialized and registered
+2025-05-11 16:18:57,878 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 16:18:57,878 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 16:18:57,878 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 16:18:57,880 - Minion_Alpha - INFO - Starting message polling loop for Minion-Alpha
+2025-05-11 16:18:57,882 - Minion_Alpha - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 16:18:57,882 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 16:21:27,801 - Minion_Alpha - INFO - Received A2A message: {'message_type': 'debug_get_logs', 'sender_id': 'STEVEN_GUI_COMMANDER', 'timestamp': 1746994883.0485...
+2025-05-11 16:48:41,344 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 16:48:41,344 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 16:48:41,349 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 16:48:41,350 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 16:48:41,350 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 16:48:41,447 - Minion_Alpha - INFO - Successfully registered agent Alpha
+2025-05-11 16:48:41,447 - Minion_Alpha - INFO - Server assigned different ID: Minion-Alpha. Updating.
+2025-05-11 16:48:41,447 - Minion_Alpha - INFO - A2A client initialized and registered
+2025-05-11 16:48:41,447 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 16:48:41,448 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 16:48:41,448 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 16:48:41,450 - Minion_Alpha - INFO - Starting message polling loop for Minion-Alpha
+2025-05-11 16:48:41,452 - Minion_Alpha - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 16:48:41,452 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 16:49:51,410 - Minion_Alpha - INFO - Received A2A message: {'session_id': '1b1302ed', 'initiator_id': 'STEVEN_GUI_COMMANDER', 'participants': ['Minion-Alpha'],...
+2025-05-11 16:53:00,031 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 16:53:00,031 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 16:53:00,035 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 16:53:00,035 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 16:53:00,035 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 16:53:00,039 - Minion_Alpha - INFO - Successfully registered agent Alpha
+2025-05-11 16:53:00,039 - Minion_Alpha - INFO - Server assigned different ID: Minion-Alpha. Updating.
+2025-05-11 16:53:00,039 - Minion_Alpha - INFO - A2A client initialized and registered
+2025-05-11 16:53:00,040 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 16:53:00,040 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 16:53:00,040 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 16:53:00,040 - Minion_Alpha - INFO - Starting message polling loop for Minion-Alpha
+2025-05-11 16:53:00,043 - Minion_Alpha - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 16:53:00,043 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 17:07:25,042 - Minion_Alpha - INFO - Initializing Minion Alpha (Name: Minion-Alpha)
+2025-05-11 17:07:25,043 - Minion_Alpha - INFO - Personality: Strategic, Analytical, CalmUnderPressure
+2025-05-11 17:07:25,049 - Minion_Alpha - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 17:07:25,050 - Minion_Alpha - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Alpha
+2025-05-11 17:07:25,050 - Minion_Alpha - INFO - LLM interface initialized
+2025-05-11 17:07:25,056 - Minion_Alpha - INFO - Successfully registered agent Alpha
+2025-05-11 17:07:25,056 - Minion_Alpha - INFO - Server assigned different ID: Minion-Alpha. Updating.
+2025-05-11 17:07:25,056 - Minion_Alpha - INFO - A2A client initialized and registered
+2025-05-11 17:07:25,056 - Minion_Alpha - INFO - Registered minion Alpha
+2025-05-11 17:07:25,056 - Minion_Alpha - INFO - Minion Alpha registered with its local TaskCoordinator.
+2025-05-11 17:07:25,056 - Minion_Alpha - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 17:07:25,059 - Minion_Alpha - INFO - Starting message polling loop for Minion-Alpha
+2025-05-11 17:07:25,062 - Minion_Alpha - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 17:07:25,062 - Minion_Alpha - INFO - Sent state update: idle, Minion initialized and idle

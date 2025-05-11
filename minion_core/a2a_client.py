@@ -6,6 +6,7 @@ import time
 import threading
 import logging
 from .utils.logger import setup_logger
+from minion_core.utils.health import HealthStatus, HealthCheckResult, HealthCheckable
 
 # Ensure the project root is in sys.path to find system_configs.config_manager
 project_root_for_imports = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -18,7 +19,7 @@ from system_configs.config_manager import config # Import the global config inst
 LOGS_DIR_FOR_A2A_CLIENT = config.get_path("global.logs_dir", os.path.join(config.get_project_root(), "logs"))
 
 
-class A2AClient:
+class A2AClient(HealthCheckable):
     def __init__(self, minion_id, a2a_server_url, agent_card_data, logger=None, message_callback=None):
         self.minion_id = minion_id
         
@@ -195,74 +196,106 @@ class A2AClient:
             self.logger.error(f"Failed to send message to {recipient_agent_id}. No response from server (_make_request returned None).")
             return False
 
+    def _sort_messages_by_priority(self, messages):
+        """Sort messages by priority based on message_type."""
+        # Define priority order (lower number = higher priority)
+        priority_order = {
+            "control_pause_request": 1,
+            "control_resume_request": 2,
+            "m2m_task_status_update": 3,
+            "m2m_negative_acknowledgement": 4,
+            "user_broadcast_directive": 5,
+            # Default priority for other types
+            "default": 10
+        }
+
+        # Get priority for a message, defaulting to the "default" priority if type not found
+        def get_priority(message):
+            message_type = message.get("message_type", "unknown")
+            return priority_order.get(message_type, priority_order["default"])
+
+        # Sort messages by priority
+        return sorted(messages, key=get_priority)
+
+    def _process_single_message(self, message_data):
+        """Process a single message with proper error handling."""
+        message_id = message_data.get('id', 'unknown')
+
+        try:
+            # Check for duplication
+            if message_id in self.processed_message_ids:
+                self.logger.info(f"Duplicate message ID {message_id} received for {self.minion_id}. Skipping.")
+                return
+
+            self.processed_message_ids.add(message_id)
+
+            # Cap the size of processed_message_ids to prevent unbounded growth
+            if len(self.processed_message_ids) > 1000:
+                # Keep the 500 most recent IDs
+                self.processed_message_ids = set(list(self.processed_message_ids)[-500:])
+
+            # Call the callback
+            if self.message_callback:
+                self.logger.debug(f"Calling message_callback for {self.minion_id} with message ID {message_id}: {str(message_data)[:100]}")
+                self.message_callback(message_data)
+
+        except Exception as e:
+            self.logger.error(f"Error processing message ID {message_id} for {self.minion_id}: {e}", exc_info=True)
+
     def _message_listener_loop(self):
-        """Polls the A2A server for new messages."""
-        # Codex Omega Note: This is a simple polling mechanism.
-        # A more robust solution might use WebSockets or Server-Sent Events if the A2A server supports it.
-        # The Google A2A sample server has a GET /agents/{agent_id}/messages endpoint.
-        # endpoint definition moved inside the loop to use updated self.minion_id
-        # Old line: endpoint = f"/agents/{self.minion_id}/messages"
-        last_poll_time = time.time() - 60 # Poll for last minute of messages initially
-        
-        self.logger.info(f"A2A message listener started for {self.minion_id}.")
+        """Polls the A2A server for new messages with adaptive polling."""
+        last_message_time = time.time()
+
+        # Adaptive polling - start with minimal interval but can extend when idle
+        min_interval = self.polling_interval
+        max_interval = min_interval * 6  # Up to 6x longer when idle
+        current_interval = min_interval
+
+        self.logger.info(f"A2A message listener started for {self.minion_id} with adaptive polling: min_interval={min_interval}s, max_interval={max_interval}s.")
         while not self.stop_listener_event.is_set():
             try:
-                self.logger.debug(f"_message_listener_loop polling for {self.minion_id}") # Changed from print & info
-                # BIAS_ACTION: Add a small delay to polling to avoid spamming the server.
-                time.sleep(self.polling_interval) # Poll interval now configurable
+                # Sleep first to prevent hammering the server on errors
+                self.logger.debug(f"Message listener ({self.minion_id}) sleeping for {current_interval:.1f}s.")
+                time.sleep(current_interval)
 
-                self.logger.debug(f"Polling: self.a2a_server_url = '{self.a2a_server_url}', self.minion_id = '{self.minion_id}'")
+                # Attempt to get messages
+                self.logger.debug(f"Polling for messages for {self.minion_id}. Current interval: {current_interval:.1f}s")
                 current_endpoint = f"/agents/{self.minion_id}/messages"
-                polling_url = f"{self.a2a_server_url}{current_endpoint}" # self.a2a_server_url is rstrip('/')-ed in __init__
-                self.logger.debug(f"Polling for messages at {polling_url}")
-                
                 response_obj = self._make_request('get', current_endpoint)
 
-                if response_obj:
-                    if response_obj.get("status_code") == 200 and isinstance(response_obj.get("data"), list):
-                        messages = response_obj["data"]
-                        if messages:
-                            self.logger.info(f"Received {len(messages)} message(s) for {self.minion_id}. Processing...")
-                        for msg_idx, message_data in enumerate(messages):
-                            self.logger.debug(f"Processing message {msg_idx + 1}/{len(messages)} for {self.minion_id}: {str(message_data)[:200]}")
-                            
-                            # Client-side message de-duplication
-                            message_id = message_data.get('id') # Assuming 'id' is the unique message identifier
-                            if not message_id:
-                                self.logger.warning(f"Message for {self.minion_id} missing 'id' field, cannot de-duplicate: {str(message_data)[:100]}")
-                                # Fallback: process if no ID, or decide to skip
-                                if self.message_callback:
-                                    try:
-                                        self.message_callback(message_data)
-                                    except Exception as e_cb:
-                                        self.logger.error(f"Error in A2A message_callback (no_id_msg) for {self.minion_id}: {e_cb}", exc_info=True)
-                                continue
+                if response_obj and response_obj.get("status_code") == 200 and isinstance(response_obj.get("data"), list):
+                    messages = response_obj["data"]
 
-                            if message_id in self.processed_message_ids:
-                                self.logger.info(f"Duplicate message ID {message_id} received for {self.minion_id}. Skipping.")
-                                continue
-                            
-                            self.processed_message_ids.add(message_id)
-                            # Optional: Add logic here to cap the size of self.processed_message_ids if needed in the future
-
-                            if self.message_callback:
-                                self.logger.debug(f"Calling message_callback for {self.minion_id} with message ID {message_id}: {str(message_data)[:100]}")
-                                try:
-                                    self.message_callback(message_data) # Pass the raw message object
-                                except Exception as e_cb:
-                                    self.logger.error(f"Error in A2A message_callback for {self.minion_id} (message ID: {message_id}): {e_cb}", exc_info=True)
-                            # TODO: Implement message deletion or marking as read on the server if supported
-                            # e.g., self._make_request('delete', f"{current_endpoint}/{message_id}")
-                        # last_poll_time = time.time() # Only useful if server supports 'since' or if client de-duplicates
-                    else: # response_obj exists but status is not 200 or data is not list
-                        self.logger.warning(f"Unexpected response when polling messages for {self.minion_id}. Status: {response_obj.get('status_code')}, Data: {str(response_obj.get('data'))[:200]}")
+                    if messages:
+                        # Got messages, reset to minimum polling interval
+                        self.logger.info(f"Received {len(messages)} message(s) for {self.minion_id}. Resetting poll interval to {min_interval}s.")
+                        current_interval = min_interval
+                        last_message_time = time.time()
+                        
+                        # Process messages in priority order
+                        sorted_messages = self._sort_messages_by_priority(messages)
+                        for message_data in sorted_messages:
+                            self._process_single_message(message_data)
+                    else:
+                        # No messages, gradually increase polling interval up to max
+                        idle_time = time.time() - last_message_time
+                        if idle_time > 60: # After 1 minute of no messages
+                            new_interval = min(current_interval * 1.5, max_interval)
+                            if new_interval > current_interval:
+                                current_interval = new_interval
+                                self.logger.debug(f"No messages for {self.minion_id}. Increasing polling interval to {current_interval:.1f}s after {idle_time:.1f}s idle.")
+                            else:
+                                self.logger.debug(f"No messages for {self.minion_id}. Polling interval remains at max {current_interval:.1f}s after {idle_time:.1f}s idle.")
+                        else:
+                            self.logger.debug(f"No messages for {self.minion_id}. Current interval {current_interval:.1f}s. Idle time {idle_time:.1f}s < 60s.")
+                elif response_obj: # response_obj exists but status is not 200 or data is not list
+                    self.logger.warning(f"Unexpected response when polling messages for {self.minion_id}. Status: {response_obj.get('status_code')}, Data: {str(response_obj.get('data'))[:200]}. Interval unchanged.")
                 else: # _make_request returned None
-                    self.logger.warning(f"No response from server when polling messages for {self.minion_id} (_make_request returned None).")
-
+                    self.logger.warning(f"No response from server when polling messages for {self.minion_id} (_make_request returned None). Interval unchanged.")
             except Exception as e:
                 self.logger.error(f"Error in A2A message listener loop for {self.minion_id}: {e}", exc_info=True)
-                # BIAS_ACTION: Don't let listener die on transient errors.
-                time.sleep(15) # Longer sleep on error
+                # Don't change interval here, we already sleep at the start of the loop
+        
         self.logger.info(f"A2A message listener stopped for {self.minion_id}.")
 
     def start_message_listener(self):
@@ -287,6 +320,42 @@ class A2AClient:
             if self.listener_thread.is_alive():
                 self.logger.warning("A2A message listener thread did not stop in time.")
         self.is_registered = False # Assume re-registration needed if listener stops
+
+    def check_health(self) -> HealthCheckResult:
+        if not self.is_registered:
+            return HealthCheckResult(
+                component="A2AClient",
+                status=HealthStatus.DEGRADED,
+                details={
+                    "server_url": self.a2a_server_url,
+                    "reason": "Not registered with A2A server"
+                }
+            )
+        
+        try:
+            # Check if server is responding
+            response_obj = self._make_request('get', f"/agents/{self.minion_id}")
+            if response_obj and response_obj.get("status_code") in [200, 204]:
+                return HealthCheckResult(
+                    component="A2AClient",
+                    status=HealthStatus.HEALTHY,
+                    details={"server_url": self.a2a_server_url}
+                )
+            else:
+                return HealthCheckResult(
+                    component="A2AClient",
+                    status=HealthStatus.DEGRADED,
+                    details={
+                        "server_url": self.a2a_server_url,
+                        "status_code": response_obj.get("status_code") if response_obj else None
+                    }
+                )
+        except Exception as e:
+            return HealthCheckResult(
+                component="A2AClient",
+                status=HealthStatus.UNHEALTHY,
+                details={"server_url": self.a2a_server_url, "error": str(e)}
+            )
 
 # BIAS_CHECK: This A2A client is basic. Real-world use would need more robust error handling,
 # message sequencing, acknowledgements, and potentially a more efficient transport than polling.

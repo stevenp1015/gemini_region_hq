@@ -4,11 +4,12 @@ import time
 import json
 import uuid
 import argparse
-import threading # Added for processing tasks in a new thread
+import threading
 import subprocess # For managing MCP Node service
 from datetime import datetime, timezone
 from enum import Enum
 import json # Ensure json is imported, though it might be already
+from typing import Dict, Any # Added for health check return type
 
 # Ensure minion_core's parent directory (project root) is in PYTHONPATH for config_manager import
 # This is often handled by how the script is invoked by the spawner or by setting PYTHONPATH.
@@ -26,6 +27,10 @@ from minion_core.tool_manager import ToolManager
 from minion_core.a2a_client import A2AClient
 from minion_core.mcp_node_bridge import McpNodeBridge # MCP Integration
 from common.types import AgentCapabilities, AgentSkill # Added for AgentCard construction
+from minion_core.utils.errors import LLMError, LLMContentFilterError # Added for standardized error handling
+from minion_core.state_manager import StateManager, MinionState, TaskState  # MCP_AGENT_CHANGE
+from minion_core.task_queue import TaskQueue, Task, TaskPriority, TaskStatus
+from minion_core.utils.metrics import MetricsCollector # Added for Metrics
 
 # --- Paths and URLs from ConfigManager ---
 PROJECT_ROOT = config.get_project_root()
@@ -55,12 +60,12 @@ class Minion:
     def __init__(self, minion_id, user_facing_name=None, personality_traits_str=None, a2a_server_url_override=None):
         self.minion_id = minion_id
         self.user_facing_name = user_facing_name if user_facing_name else f"UnnamedMinion-{self.minion_id[:6]}"
-        
+
         # Initialize logger early
         self.log_file_path = os.path.join(LOGS_DIR, f"minion_{self.minion_id}.log")
         # TODO: Integrate minion-specific log level from config here if desired for setup_logger
-        self.logger = setup_logger(f"Minion_{self.minion_id}", self.log_file_path) # Default level for now
-        self.logger.info(f"Minion {self.minion_id} (Name: {self.user_facing_name}) initializing...") # Initial log
+        self.logger = setup_logger(f"Minion_{self.minion_id}", self.log_file_path)  # Default level for now
+        self.logger.info(f"Minion {self.minion_id} (Name: {self.user_facing_name}) initializing...")  # Initial log
 
         self.start_time = datetime.now(timezone.utc)
         self.mcp_bridge = None
@@ -74,12 +79,9 @@ class Minion:
         self.logger.info(f"M2M Config: Retries={self.m2m_retry_attempts}, Timeout={self.m2m_default_timeout_seconds}s, MaxDepth={self.m2m_max_delegation_depth}")
 
 
-        # State variables for pause/resume
-        self.is_paused = False
-        self.paused_state = {}
-        self.pending_messages_while_paused = []
-        self.current_status = MinionStatus.IDLE
-        self.current_task_description = None # To store the description of the task being processed for serialization
+        # MCP_AGENT_CHANGE: State variables are now managed by StateManager and MinionState
+        # Old state variables (self.is_paused, self.paused_state, self.pending_messages_while_paused, self.current_status, self.current_task_description)
+        # will be initialized after attempting to load state.
 
         # Determine personality: command-line (via spawner) > config > hardcoded default
         if personality_traits_str is None:
@@ -126,8 +128,10 @@ class Minion:
                 self.logger.error("mcp_node_service_base_url is not configured. MCP Bridge cannot be initialized.")
                 self.enable_mcp_integration = False # Disable if URL is missing
             else:
+                # The McpNodeBridge now takes base_url and an optional logger
                 self.mcp_bridge = McpNodeBridge(base_url=mcp_node_service_base_url, logger=self.logger)
-                self.logger.info(f"McpNodeBridge initialized with base URL: {mcp_node_service_base_url}")
+                # Logger message updated to reflect that initialization includes a health check now
+                self.logger.info(f"McpNodeBridge initialization attempted with base URL: {mcp_node_service_base_url}. Bridge available: {self.mcp_bridge.is_available}")
 
                 self.manage_mcp_node_service_lifecycle = config.get_bool('mcp_integration.manage_mcp_node_service_lifecycle', False)
                 if self.manage_mcp_node_service_lifecycle:
@@ -268,46 +272,135 @@ class Minion:
             message_callback=self.handle_a2a_message
         )
         
-        self.conversation_history = [{"role": "system", "content": self.system_prompt}]
-        self.current_task = None
-        self.is_idle = True
+        # MCP_AGENT_CHANGE: Initialize StateManager and load state
+        minion_state_storage_dir = config.get_path("minion_state.storage_dir",
+                                                   os.path.join(PROJECT_ROOT, "system_data", "minion_states"))
+        os.makedirs(minion_state_storage_dir, exist_ok=True) # Ensure directory exists
+        self.state_manager = StateManager(minion_id=self.minion_id,
+                                         storage_dir=minion_state_storage_dir,
+                                         logger=self.logger)
         
-        self.logger.info(f"Minion {self.minion_id} (Name: {self.user_facing_name}) initialized successfully. Personality: {self.personality_traits}")
-        self.logger.info(f"System Prompt: {self.system_prompt[:300]}...") # Log beginning
-
-        # State file path and loading
-        minion_state_storage_dir = config.get_path("minion_state.storage_dir", os.path.join(PROJECT_ROOT, "system_data", "minion_states"))
-        os.makedirs(minion_state_storage_dir, exist_ok=True)
-        self.state_file_path = os.path.join(minion_state_storage_dir, f"minion_state_{self.minion_id}.json")
-        self._load_state_from_file() # Attempt to load state on init
-
-    def _load_state_from_file(self):
-        if os.path.exists(self.state_file_path):
-            self.logger.info(f"Found existing state file: {self.state_file_path}. Attempting to load.")
-            try:
-                with open(self.state_file_path, 'r') as f:
-                    loaded_state = json.load(f)
-                
-                self.paused_state = loaded_state.get("paused_state", {})
-                # Deserialize state if it was saved in a paused state
-                if self.paused_state: # Check if there's actually something to deserialize
-                    self._deserialize_state() # This will set self.is_paused, self.current_task_description etc.
-                    self.is_paused = loaded_state.get("is_paused", True) # Explicitly set is_paused from file, default to True if resuming
-                    self.current_status = MinionStatus.PAUSED if self.is_paused else MinionStatus.IDLE
-                    self.pending_messages_while_paused = loaded_state.get("pending_messages_while_paused", [])
-                    self.logger.info(f"Successfully loaded state. Minion is now {self.current_status.value}.")
-                    # Optionally, remove the state file after successful load if it's a one-time resume
-                    # os.remove(self.state_file_path)
-                    # self.logger.info(f"Removed state file {self.state_file_path} after loading.")
-                else:
-                    self.logger.info("State file loaded, but no 'paused_state' data found. Minion remains in its current initialized state.")
-
-            except json.JSONDecodeError as e:
-                self.logger.error(f"Error decoding JSON from state file {self.state_file_path}: {e}", exc_info=True)
-            except Exception as e:
-                self.logger.error(f"Failed to load state from {self.state_file_path}: {e}", exc_info=True)
+        loaded_state = self.state_manager.load_state()
+        if loaded_state:
+            self.logger.info(f"Found existing state. Minion was previously: {'paused' if loaded_state.is_paused else 'active'}")
+            self._restore_from_state(loaded_state) # This method will set self.current_state, self.is_paused, etc.
         else:
-            self.logger.info(f"No existing state file found at {self.state_file_path}. Starting fresh.")
+            # Initialize with default state
+            self.current_state = MinionState(minion_id=self.minion_id)
+            self.is_paused = False
+            self.pending_messages_while_paused = [] # This is the working list, synced with self.current_state.pending_messages
+            self.current_task_description = None
+            self.current_task = None # Ensure current_task (ID) is also None initially
+            self.current_status = MinionStatus.IDLE
+            # Initialize conversation history here if not restored
+            self.conversation_history = [{"role": "system", "content": self.system_prompt}]
+            self.logger.info("No existing state found. Initialized with default state.")
+
+        # self.current_task and self.is_idle are typically managed by task processing logic
+        # For initial state:
+        if not loaded_state: # Only if not restored, as _restore_from_state handles this
+             self.is_idle = True # Start as idle if no state loaded
+
+        self.logger.info(f"Minion {self.minion_id} (Name: {self.user_facing_name}) initialized successfully. Personality: {self.personality_traits}")
+        self.logger.info(f"System Prompt: {self.system_prompt[:300]}...")  # Log beginning
+        # MCP_AGENT_CHANGE: Old state file path and loading (_load_state_from_file) removed. State is handled by StateManager.
+
+        # Initialize TaskQueue
+        self.task_queue = TaskQueue(logger=self.logger)
+        self.task_queue.add_task_listener(self._handle_task_status_change)
+
+        # Initialize metrics collector
+        metrics_dir_config_key = f"minion_specific.{self.minion_id}.metrics_storage_dir"
+        default_metrics_dir = os.path.join(PROJECT_ROOT, "system_data", "metrics", self.minion_id)
+        metrics_dir = config.get_path(metrics_dir_config_key,
+                                    config.get_path("minion_defaults.metrics_storage_dir", default_metrics_dir))
+        
+        # Ensure the specific minion's metrics directory exists
+        os.makedirs(metrics_dir, exist_ok=True)
+
+        self.metrics = MetricsCollector(
+            component_name=f"Minion_{self.minion_id}",
+            storage_dir=metrics_dir, # Use the resolved, minion-specific directory
+            logger=self.logger
+        )
+        self.logger.info(f"Metrics storage directory set to: {metrics_dir}")
+        
+        # Schedule periodic metrics save
+        self._start_metrics_save_thread()
+ 
+     # def _load_state_from_file(self): # MCP_AGENT_CHANGE: This method is now removed
+    def _restore_from_state(self, state: MinionState):
+        """Restore minion state from a loaded MinionState object."""
+        self.current_state = state
+        self.is_paused = state.is_paused
+        
+        # Restore current task if any
+        if state.current_task:
+            self.current_task_description = state.current_task.task_description
+            self.current_task = state.current_task.task_id # This is the task_id string
+            # Determine status based on whether it's paused or was running
+            self.current_status = MinionStatus.PAUSED if self.is_paused else MinionStatus.RUNNING
+            self.is_idle = False # If there's a task, not idle
+        else:
+            self.current_task_description = None
+            self.current_task = None
+            self.current_status = MinionStatus.PAUSED if self.is_paused else MinionStatus.IDLE
+            self.is_idle = True # If no task, idle
+
+        # Restore pending messages
+        # self.pending_messages_while_paused is the live list used by the Minion
+        self.pending_messages_while_paused = list(state.pending_messages) # Ensure it's a mutable copy
+        
+        # Restore conversation history if needed
+        if state.conversation_history:
+            self.conversation_history = list(state.conversation_history) # Ensure it's a mutable copy
+        else:
+            # Fallback if history is missing in state, though MinionState defaults it
+            self.conversation_history = [{"role": "system", "content": self.system_prompt}]
+        
+        self.logger.info(f"Successfully restored state. Minion is now {self.current_status.value}. Task: '{self.current_task_description}'. Paused: {self.is_paused}")
+
+    def _save_current_state(self):
+        """Capture and save the current state using StateManager."""
+        if not hasattr(self, 'current_state') or self.current_state is None:
+            # This case should ideally not happen if __init__ always sets self.current_state
+            self.logger.warning("current_state attribute not found or is None during save. Initializing a new MinionState.")
+            self.current_state = MinionState(minion_id=self.minion_id)
+
+        self.current_state.is_paused = self.is_paused
+        # self.pending_messages_while_paused is the live list from the Minion object
+        self.current_state.pending_messages = list(self.pending_messages_while_paused) # Ensure it's a copy for saving
+        self.current_state.conversation_history = list(self.conversation_history) # Ensure it's a copy for saving
+        
+        # Update current task state if applicable
+        if self.current_task_description: # current_task_description is the source of truth for an active task
+            task_id_to_save = self.current_task or str(uuid.uuid4()) # Use existing task_id or generate new if None
+            
+            # Check if the TaskState object needs to be created or updated
+            if not self.current_state.current_task or self.current_state.current_task.task_id != task_id_to_save:
+                # Create a new TaskState if none exists in current_state.current_task or if task_id has changed
+                self.current_state.current_task = TaskState(
+                    task_id=task_id_to_save,
+                    task_description=self.current_task_description,
+                    start_time=time.time(), # Sets start_time on creation/update of this TaskState object
+                    sender_id="unknown",  # TODO: This should be captured when task actually starts from a message
+                    status = "paused" if self.is_paused else ("running" if not self.is_idle else "pending") # Determine status
+                )
+            else: # TaskState exists and task_id matches, just update its status and potentially other fields
+                 self.current_state.current_task.status = "paused" if self.is_paused else ("running" if not self.is_idle else self.current_state.current_task.status)
+                 self.current_state.current_task.task_description = self.current_task_description # Ensure description is up-to-date
+
+            if self.current_task != task_id_to_save: # if a new uuid was generated for self.current_task
+                self.current_task = task_id_to_save # update the minion's current_task (ID string) to the one saved
+        else:
+            self.current_state.current_task = None # No active task
+        
+        # Save to disk via StateManager
+        success = self.state_manager.save_state(self.current_state)
+        if success:
+            self.logger.info("Successfully saved current state via StateManager.")
+        else:
+            self.logger.error("Failed to save current state via StateManager.")
 
     def _construct_system_prompt(self):
         # BIAS_ACTION: System prompt is critical for behavior, loyalty, and Anti-Efficiency Bias.
@@ -368,6 +461,35 @@ class Minion:
         # though Gemini 1.5 Pro has a very large context window.
         return "\n".join(prompt_parts)
 
+    def _start_metrics_save_thread(self):
+        """Start a thread to periodically save metrics."""
+        def _save_metrics_loop():
+            save_interval = config.get_int("metrics.save_interval_seconds", 60)
+            while True:
+                try:
+                    time.sleep(save_interval)
+                    self._update_and_save_metrics()
+                except Exception as e:
+                    self.logger.error(f"Error in metrics save loop: {e}", exc_info=True)
+        
+        metrics_thread = threading.Thread(target=_save_metrics_loop, daemon=True)
+        metrics_thread.name = f"Minion_{self.minion_id}_MetricsSaver"
+        metrics_thread.start()
+
+    def _update_and_save_metrics(self):
+        """Update and save current metrics."""
+        # Update gauge metrics
+        self.metrics.set_gauge("is_paused", 1 if self.is_paused else 0)
+        self.metrics.set_gauge("queue_length", len(self.task_queue.queue)) # Direct access to queue for length
+        self.metrics.set_gauge("has_running_task", 1 if self.task_queue.running_task else 0)
+        self.metrics.set_gauge("pending_m2m_requests_count", len(self.pending_m2m_requests))
+
+        # Save metrics
+        if self.metrics.save_metrics():
+            self.logger.debug("Metrics saved successfully.")
+        else:
+            self.logger.warning("Failed to save metrics (save_metrics returned False).")
+ 
     def _send_state_update(self, status: MinionStatus, details: str = ""):
         """Helper method to send a minion_state_update message."""
         if not self.a2a_client:
@@ -382,16 +504,53 @@ class Minion:
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         try:
-            self.a2a_client.send_message(
+            # Use the new Minion.send_message wrapper
+            self.send_message(
                 recipient_agent_id=self.gui_commander_id, # Defined in __init__
                 message_content=message_content,
                 message_type="minion_state_update"
             )
-            self.logger.info(f"Sent minion_state_update: {status.value}, Details: {details}")
+            # self.logger.info(f"Sent minion_state_update: {status.value}, Details: {details}") # Logging is now in send_message
         except Exception as e:
-            self.logger.error(f"Failed to send minion_state_update: {e}", exc_info=True)
+            self.logger.error(f"Failed to send minion_state_update via self.send_message: {e}", exc_info=True)
 
+    def send_message(self, recipient_agent_id, message_content, message_type="generic_text"):
+        """Wraps A2AClient.send_message to include metrics."""
+        if not self.a2a_client:
+            self.logger.error(f"Cannot send message type '{message_type}' to {recipient_agent_id}: A2A client not available.")
+            return False # Indicate failure
+
+        timer_id = self.metrics.start_timer("a2a_message_send_time", {
+            "type": message_type,
+            "recipient_id": recipient_agent_id[:10] # Truncate long IDs
+        })
+        
+        try:
+            success = self.a2a_client.send_message(
+                recipient_agent_id=recipient_agent_id,
+                message_content=message_content,
+                message_type=message_type
+            )
+            if success:
+                self.logger.info(f"Successfully sent A2A message type '{message_type}' to {recipient_agent_id}.")
+                self.metrics.inc_counter("a2a_messages_sent", labels={"type": message_type, "recipient_id_prefix": recipient_agent_id[:10], "status": "success"})
+            else:
+                self.logger.warning(f"A2AClient reported failure sending message type '{message_type}' to {recipient_agent_id}.")
+                self.metrics.inc_counter("a2a_messages_sent", labels={"type": message_type, "recipient_id_prefix": recipient_agent_id[:10], "status": "failed_by_client"})
+            return success
+        except Exception as e:
+            self.logger.error(f"Exception sending A2A message type '{message_type}' to {recipient_agent_id}: {e}", exc_info=True)
+            self.metrics.inc_counter("a2a_messages_sent", labels={"type": message_type, "recipient_id_prefix": recipient_agent_id[:10], "status": "exception"})
+            return False # Indicate failure
+        finally:
+            self.metrics.stop_timer(timer_id)
+ 
     def handle_a2a_message(self, message_data):
+        # Track message receipt
+        self.metrics.inc_counter("a2a_messages_received", labels={
+            "type": message_data.get("message_type", "unknown"),
+            "sender_id_prefix": message_data.get("sender_id", "UnknownSender")[:10]
+        })
         self.logger.info(f"Minion {self.minion_id}: handle_a2a_message CALLED with data: {str(message_data)[:200]}...") # Log entry
         # BIAS_ACTION: Robustly handle incoming A2A messages.
         # This is a callback from A2AClient. It should be non-blocking or queue tasks.
@@ -411,15 +570,15 @@ class Minion:
             self._pause_workflow()
             # Acknowledge pause
             ack_content = {"minion_id": self.minion_id, "status": "paused", "timestamp": datetime.now(timezone.utc).isoformat()}
-            self.a2a_client.send_message(sender_id, ack_content, "control_pause_ack")
+            self.send_message(sender_id, ack_content, "control_pause_ack") # Use wrapper
             # State update is handled within _pause_workflow
-
+ 
         elif message_type == "control_resume_request":
             self.logger.info("Received control_resume_request.")
             self._resume_workflow()
             # Acknowledge resume
             ack_content = {"minion_id": self.minion_id, "status": self.current_status.value, "timestamp": datetime.now(timezone.utc).isoformat()}
-            self.a2a_client.send_message(sender_id, ack_content, "control_resume_ack")
+            self.send_message(sender_id, ack_content, "control_resume_ack") # Use wrapper
             # State update is handled within _resume_workflow
             
         elif message_type == "message_to_paused_minion_request":
@@ -435,26 +594,30 @@ class Minion:
                     "original_message_timestamp": original_ts,
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
-                self.a2a_client.send_message(sender_id, ack_content, "message_to_paused_minion_ack")
+                self.send_message(sender_id, ack_content, "message_to_paused_minion_ack") # Use wrapper
                 self.logger.info(f"Stored message while paused: {message_actual_content[:100]}...")
             else:
                 self.logger.warning("Received message_to_paused_minion_request, but Minion is not paused. Ignoring.")
                 # Optionally send a NACK or error
                 nack_content = {"minion_id": self.minion_id, "status": "error", "detail": "Minion not paused", "timestamp": datetime.now(timezone.utc).isoformat()}
-                self.a2a_client.send_message(sender_id, nack_content, "message_to_paused_minion_nack") # Assuming a NACK type
-
+                self.send_message(sender_id, nack_content, "message_to_paused_minion_nack") # Use wrapper
+ 
         elif message_type == "user_broadcast_directive" and content:
             if self.is_paused:
                 self.logger.info(f"Received broadcast directive for task: {content[:60]}... but Minion is paused. Queuing message.")
                 self._store_message_while_paused({"type": "directive", "content": content, "sender": sender_id})
             else:
-                self.logger.info(f"Received broadcast directive. Starting task processing in a new thread for: {content[:60]}...")
-                self.current_status = MinionStatus.RUNNING
-                self._send_state_update(self.current_status, f"Starting task: {content[:60]}...")
-                # Run process_task in a new thread to avoid blocking the A2A listener
-                task_thread = threading.Thread(target=self.process_task, args=(content, sender_id))
-                task_thread.daemon = True # Allow main program to exit even if threads are running
-                task_thread.start()
+                self.logger.info(f"Received broadcast directive. Queuing task: {content[:60]}...")
+                # Add to task queue instead of immediate processing
+                self.task_queue.add_task(
+                    description=content,
+                    sender_id=sender_id,
+                    priority=TaskPriority.NORMAL
+                )
+
+                # If no task is currently running, start processing the queue
+                if not self.task_queue.running_task:
+                    self._process_next_task()
 
         # --- M2M Message Handling ---
         # These are messages *from* other minions *to* this minion.
@@ -517,46 +680,7 @@ class Minion:
         self.logger.info(f"Message stored while paused: {str(message_content)[:100]}...")
         # Persist immediately if needed, or rely on shutdown/pause serialization
         # For now, it's added to the list which will be saved during _serialize_state or shutdown.
-
-    def _serialize_state(self):
-        """Populates self.paused_state with all necessary information to resume later."""
-        self.logger.info("Serializing minion state...")
-        self.paused_state = {
-            "current_task_description": self.current_task_description,
-            "task_progress": {}, # Placeholder for V1 - more complex progress tracking needed
-            "conversation_history": self.conversation_history, # Assuming this is JSON serializable
-            "internal_variables": {
-                # Add any other critical internal variables here
-                # e.g., "some_counter": self.some_counter
-            },
-            "pending_messages_while_paused": list(self.pending_messages_while_paused) # Ensure it's a copy
-        }
-        self.logger.info(f"State serialized. Task: {self.current_task_description}, {len(self.pending_messages_while_paused)} pending messages.")
-        return self.paused_state
-
-    def _deserialize_state(self):
-        """Restores the minion's operational attributes from self.paused_state."""
-        if not self.paused_state:
-            self.logger.warning("Attempted to deserialize state, but paused_state is empty.")
-            return False
-
-        self.logger.info("Deserializing minion state...")
-        self.current_task_description = self.paused_state.get("current_task_description")
-        # Restore task_progress - for V1, this is simple
-        # self.task_progress = self.paused_state.get("task_progress", {})
-        self.conversation_history = self.paused_state.get("conversation_history", [{"role": "system", "content": self.system_prompt}])
-        
-        # Restore internal_variables
-        # internal_vars = self.paused_state.get("internal_variables", {})
-        # self.some_counter = internal_vars.get("some_counter", 0)
-
-        # pending_messages_while_paused is handled by _resume_workflow after deserialization
-        # self.pending_messages_while_paused = list(self.paused_state.get("pending_messages_while_paused", []))
-        
-        self.logger.info(f"State deserialized. Restored task: {self.current_task_description}")
-        # Clear paused_state after successful deserialization to prevent re-use unless repopulated
-        # self.paused_state = {} # Cleared in _resume_workflow after full processing
-        return True
+    # MCP_AGENT_CHANGE: _serialize_state and _deserialize_state are removed. State is handled by _save_current_state and _restore_from_state with StateManager.
 
     def _pause_workflow(self):
         """Handles the logic to pause the minion's workflow."""
@@ -569,10 +693,9 @@ class Minion:
         self._send_state_update(self.current_status, "Attempting to pause workflow.")
 
         self.is_paused = True
-        self._serialize_state() # Save current operational context
-
-        # In a more complex scenario, ensure this is called at a safe point.
-        # For V1, we assume it can pause immediately between tasks or main loop iterations.
+        
+        # Save state before fully pausing
+        self._save_current_state() # MCP_AGENT_CHANGE: Use new save state method
         
         self.current_status = MinionStatus.PAUSED
         self.logger.info("Minion workflow paused.")
@@ -588,50 +711,45 @@ class Minion:
         self.current_status = MinionStatus.RESUMING
         self._send_state_update(self.current_status, "Attempting to resume workflow.")
 
-        if not self._deserialize_state():
-            self.logger.error("Failed to deserialize state. Cannot resume. Minion remains paused.")
-            self.current_status = MinionStatus.ERROR # Or back to PAUSED with error
-            self._send_state_update(self.current_status, "Error during state deserialization. Resumption failed.")
-            return
-
+        # State is assumed to be loaded into self.current_state by __init__ or a previous load.
+        # We just flip the is_paused flag.
         self.is_paused = False
-        self.logger.info("Minion workflow resumed.")
-
+        
         # Process pending messages
+        # self.pending_messages_while_paused is the live list, restored by _restore_from_state
         if self.pending_messages_while_paused:
             self.logger.info(f"Processing {len(self.pending_messages_while_paused)} messages received while paused.")
-            for msg_content in self.pending_messages_while_paused:
-                # This is a simplified handling. A more robust system might re-evaluate the current task
-                # or integrate these messages into the conversation history more directly for the LLM.
-                self.logger.info(f"Processing stored message: {str(msg_content)[:100]}...")
-                if isinstance(msg_content, dict) and msg_content.get("type") == "directive":
-                    # If it was a queued directive, try to process it now.
-                    # This could be complex if a task was already in progress.
-                    # For V1, we might just add it to history or log it.
-                    # Or, if idle, start it.
-                    self.logger.info(f"Queued directive found: {msg_content.get('content')}. Sender: {msg_content.get('sender')}")
-                    # For now, just add to conversation history.
-                    # A more sophisticated approach would be needed if a task was partially complete.
-                    history_entry = f"[Message Processed After Resume from {msg_content.get('sender', 'Unknown')}({msg_content.get('type', 'unknown')})]: {msg_content.get('content')}"
-                    self.add_to_conversation_history("user", history_entry)
-                else: # Simple message
-                    history_entry = f"[Message Processed After Resume]: {str(msg_content)[:200]}"
-                    self.add_to_conversation_history("user", history_entry)
-            self.pending_messages_while_paused.clear()
-            self.logger.info("Cleared pending messages queue.")
+            # Create a copy for iteration as _process_stored_message might modify the list or trigger actions
+            messages_to_process = list(self.pending_messages_while_paused)
+            self.pending_messages_while_paused.clear() # Clear original list before processing
 
-        self.paused_state = {} # Clear the state after successful resumption and processing
+            for msg in messages_to_process:
+                # self._process_stored_message(msg) # MCP_AGENT_CHANGE: Placeholder from plan.
+                # For now, log and add to history as a simple form of processing.
+                # A dedicated _process_stored_message method would handle different message types appropriately.
+                self.logger.info(f"Processing stored message after resume: {str(msg)[:100]}...")
+                history_entry = f"[Message Processed After Resume]: {str(msg)[:200]}"
+                self.add_to_conversation_history("user", history_entry) # Or a more specific role/parser
+            
+            self.logger.info("Finished processing stored messages.")
+        else:
+            self.logger.info("No pending messages to process upon resume.")
 
-        # Determine new status (running if task, idle if not)
-        if self.current_task_description: # If a task was restored
+        # Determine new status based on current task
+        # If a task was active or restored
+        if self.current_task_description:
             self.current_status = MinionStatus.RUNNING
             self.logger.info(f"Resuming with task: {self.current_task_description}")
-            # The main loop should pick up this task.
-            # Or, if process_task was designed to be re-entrant, call it.
-            # For V1, assume main loop handles it.
+            
+            # If we have a current task in our state object, update its status
+            if self.current_state and self.current_state.current_task:
+                self.current_state.current_task.status = "running"
         else:
             self.current_status = MinionStatus.IDLE
             self.logger.info("Resumed to idle state as no task was active.")
+        
+        # Save the resumed state (e.g., is_paused=False, cleared pending_messages, updated task status)
+        self._save_current_state() # MCP_AGENT_CHANGE: Use new save state method
         
         self._send_state_update(self.current_status, "Minion successfully resumed.")
 
@@ -695,11 +813,16 @@ class Minion:
         actual_timeout = timeout_seconds if timeout_seconds is not None else self.m2m_default_timeout_seconds
 
         try:
-            self.a2a_client.send_message(
+            # Use the new Minion.send_message wrapper
+            success = self.send_message(
                 recipient_agent_id=recipient_id,
                 message_content=full_message,
                 message_type=message_type
             )
+            if not success:
+                self.logger.error(f"M2M message type '{message_type}' to {recipient_id} failed to send via self.send_message. Not adding to pending_m2m_requests.")
+                return False
+
             self.pending_m2m_requests[request_id] = {
                 "timestamp": time.time(),
                 "retries_left": self.m2m_retry_attempts,
@@ -815,16 +938,17 @@ class Minion:
             **nack_payload
         }
         try:
-            self.a2a_client.send_message(
+            # Use the new Minion.send_message wrapper
+            self.send_message(
                 recipient_agent_id=recipient_id,
                 message_content=full_nack_message,
                 message_type="m2m_negative_acknowledgement"
             )
-            self.logger.info(f"Sent NACK to {recipient_id} for original_msg_id {original_message_id}. Reason: {reason_code}. Details: {details}")
+            # self.logger.info(f"Sent NACK to {recipient_id} for original_msg_id {original_message_id}. Reason: {reason_code}. Details: {details}") # Logging is in send_message
         except Exception as e:
-            self.logger.error(f"Failed to send NACK to {recipient_id}: {e}", exc_info=True)
-
-
+            self.logger.error(f"Failed to send NACK to {recipient_id} via self.send_message: {e}", exc_info=True)
+ 
+ 
     def _handle_m2m_task_delegation(self, content: dict, sender_id: str):
         task_id = content.get("task_id")
         task_description = content.get("task_description")
@@ -1098,81 +1222,141 @@ class Minion:
     # --- End M2M Message Handling Implementations ---
 
 
-    def process_task(self, task_description: str, original_sender_id: str):
+    # The old process_task method is removed or refactored into _execute_task.
+    # For now, we remove it. The new task execution flow starts with _process_next_task.
+
+    def _handle_task_status_change(self, event_type: str, task: Task):
+        """Handle task status changes from the TaskQueue."""
+        if event_type == "task_started":
+            self.current_status = MinionStatus.RUNNING
+            self.current_task = task.id
+            self.current_task_description = task.description
+            self._send_state_update(self.current_status, f"Processing task: {task.description[:60]}...")
+
+        elif event_type == "task_completed":
+            if not self.task_queue.get_next_task():
+                # No more tasks in queue
+                self.current_status = MinionStatus.IDLE
+                self.current_task = None
+                self.current_task_description = None
+                self._send_state_update(self.current_status, "Task completed, minion idle.")
+
+        elif event_type == "task_failed":
+            if not self.task_queue.get_next_task():
+                # No more tasks in queue
+                self.current_status = MinionStatus.ERROR
+                self.current_task = None
+                self.current_task_description = None
+                self._send_state_update(self.current_status, f"Task failed: {task.error}")
+
+        # Save state on significant events
+        if event_type in ["task_completed", "task_failed", "task_paused", "task_canceled"]:
+            self._save_current_state()
+
+    def _process_next_task(self):
+        """Process the next task in the queue."""
         if self.is_paused:
-            self.logger.info(f"Task '{task_description[:60]}...' received but minion is paused. Storing.")
-            self._store_message_while_paused({"type": "directive", "content": task_description, "sender": original_sender_id})
-            # We don't send a state update here as the minion is already paused.
-            return "Task stored due to paused state."
+            self.logger.info("Cannot process next task: Minion is paused")
+            return
 
-        self.is_idle = False
-        self.current_task = task_description # Used by _send_state_update if it needs the generic task ID
-        self.current_task_description = task_description # Specifically for serialization
-        self.current_status = MinionStatus.RUNNING
-        self._send_state_update(self.current_status, f"Processing task: {task_description[:60]}...")
-        self.logger.info(f"Starting to process task: '{task_description[:100]}...'")
-        
-        # Construct the full prompt for the LLM
-        full_prompt = self._construct_prompt_from_history_and_task(task_description)
-        
-        # Send to LLM
-        llm_response_text = self.llm.send_prompt(full_prompt)
-        
-        if llm_response_text.startswith("ERROR_"):
-            self.logger.error(f"LLM processing failed for task '{task_description[:100]}...'. Error: {llm_response_text}")
-            self.current_status = MinionStatus.ERROR
-            self._send_state_update(self.current_status, f"LLM error on task: {llm_response_text}")
-            # BIAS_ACTION: Implement fallback or error reporting to Steven via GUI/A2A
-            self.is_idle = True
-            self.current_task = None # Clear generic task ID
-            self.current_task_description = None # Clear specific task description for serialization
-            return f"Failed to process task due to LLM error: {llm_response_text}"
+        task = self.task_queue.start_next_task()
+        if not task:
+            self.logger.info("No tasks in queue to process")
+            # Ensure minion goes to idle if queue is empty and no task was running
+            if self.current_status != MinionStatus.IDLE and not self.task_queue.running_task:
+                 self.current_status = MinionStatus.IDLE
+                 self.current_task = None
+                 self.current_task_description = None
+                 self._send_state_update(self.current_status, "Minion is idle, no more tasks.")
+            return
 
-        self.logger.info(f"LLM response for task '{task_description}': '{llm_response_text[:200]}...'")
+        # Start a new thread for task processing
+        task_thread = threading.Thread(
+            target=self._execute_task,
+            args=(task,)
+        )
+        task_thread.daemon = True
+        task_thread.start()
 
-        # Check for pause request *after* LLM response, before sending reply or doing more work.
-        # This is a V1 safe point. More granular checks would be inside a multi-step task.
-        if self.is_paused:
-            self.logger.info("Pause detected after LLM response, before sending reply. Task progress will be saved.")
-            # The current_task_description is already set.
-            # The llm_response_text could be part of 'task_progress' in a more complex serialization.
-            # For V1, we assume pausing here means this LLM response might be lost unless explicitly saved
-            # in self.paused_state by _serialize_state (e.g. as an intermediate result).
-            # _serialize_state currently doesn't store intermediate LLM responses, only the task description.
-            # This means on resume, the LLM part might re-run unless process_task is made more granular.
-            return "Task processing interrupted by pause."
-
-
-        if llm_response_text:
-            self.logger.info(f"Attempting to call self.a2a_client.send_message. Recipient: '{original_sender_id}', Content: '{llm_response_text[:100]}...'")
+    def _execute_task(self, task: Task):
+        """Execute a task from the queue."""
+        # Start timer for task processing
+        timer_id = self.metrics.start_timer("task_processing_time", {
+            "sender_id": task.sender_id[:10]  # Truncate long IDs
+        })
+        try:
+            self.logger.info(f"Executing task: {task.description[:100]}...")
+ 
+            # Construct the full prompt for the LLM
+            full_prompt = self._construct_prompt_from_history_and_task(task.description)
+ 
+            # Send to LLM
+            llm_response_text = self.llm.send_prompt(full_prompt)
+ 
+            # Check for specific error indicators from LLM if any (e.g., "ERROR_")
+            # This is a placeholder, actual error handling might be more robust based on LLMInterface
+            if isinstance(llm_response_text, str) and llm_response_text.startswith("ERROR_"): # Basic check
+                self.logger.error(f"LLM processing failed for task {task.id}: {llm_response_text}")
+                self.task_queue.fail_current_task(error=f"LLM error: {llm_response_text}")
+                self.metrics.inc_counter("tasks_failed", labels={"reason": "llm_processing_error"})
+                return # Exit before trying to send reply
+ 
+            # Send response back to the original sender
             try:
-                reply_sent = self.a2a_client.send_message(
-                    recipient_agent_id=original_sender_id,
-                    message_content=llm_response_text, # Ensure param name matches 'send_message' definition
+                # Use the new Minion.send_message wrapper
+                self.send_message(
+                    recipient_agent_id=task.sender_id,
+                    message_content=llm_response_text,
                     message_type="directive_reply"
                 )
-                # self.logger.info(f"Call to self.a2a_client.send_message completed. Result: {reply_sent}") # Redundant if next log is clear
+                # self.logger.info(f"Sent reply to {task.sender_id} for task {task.id}") # Logging is in send_message
             except Exception as e:
-                self.logger.error(f"CRITICAL: Exception occurred DURING or IMMEDIATELY AFTER calling self.a2a_client.send_message: {e}", exc_info=True)
-                reply_sent = False # Assume failure if exception
-
-            if reply_sent:
-                self.logger.info(f"Successfully sent reply via A2A to '{original_sender_id}'.")
-            else:
-                self.logger.error(f"Failed to send reply via A2A to '{original_sender_id}'. Check A2AClient logs for details if no exception here.")
-        else:
-            self.logger.warning("LLM response was empty, not sending a reply.")
-
-        # For now, just return the LLM's raw response as the "result"
-        # The actual "result" for the original caller of process_task might be less relevant
-        # now that the primary output is an A2A message.
-        self.is_idle = True
-        self.current_task = None # Clear generic task ID
-        self.current_task_description = None # Clear specific task description
-        self.current_status = MinionStatus.IDLE
-        self._send_state_update(self.current_status, "Task completed, minion idle.")
-        return llm_response_text
-
+                self.logger.error(f"Failed to send reply for task {task.id} via self.send_message: {e}", exc_info=True)
+                # Task was processed, but reply failed. Still mark as complete.
+ 
+            # Mark task as completed
+            self.task_queue.complete_current_task(result=llm_response_text)
+            self.metrics.inc_counter("tasks_processed", labels={"status": "success"})
+ 
+        except LLMContentFilterError as e:
+            self.logger.error(f"Content filter error during task {task.id}: {e.message}")
+            error_message = f"Task failed due to content policy restrictions: {e.code}"
+            self.task_queue.fail_current_task(error=error_message)
+            self.metrics.inc_counter("tasks_failed", labels={"reason": "llm_content_filter"})
+            # Optionally send an error reply to the user if appropriate
+            try:
+                # Use the new Minion.send_message wrapper
+                self.send_message(task.sender_id, error_message, "directive_reply_error")
+            except Exception as ex_send:
+                self.logger.error(f"Failed to send content filter error reply for task {task.id}: {ex_send}")
+ 
+ 
+        except LLMError as e: # Handles LLMAPIError and general LLMError
+            self.logger.error(f"LLM error during task {task.id}: {e.message}")
+            error_message = f"Task failed due to LLM error: {e.message}"
+            self.task_queue.fail_current_task(error=error_message)
+            self.metrics.inc_counter("tasks_failed", labels={"reason": "llm_api_error"})
+            try:
+                # Use the new Minion.send_message wrapper
+                self.send_message(task.sender_id, error_message, "directive_reply_error")
+            except Exception as ex_send:
+                self.logger.error(f"Failed to send LLM error reply for task {task.id}: {ex_send}")
+ 
+        except Exception as e:
+            self.logger.error(f"Unexpected error executing task {task.id}: {e}", exc_info=True)
+            self.task_queue.fail_current_task(error=f"Unexpected execution error: {str(e)}")
+            self.metrics.inc_counter("tasks_failed", labels={"reason": "unexpected_exception"})
+            try:
+                # Send a generic error message for unexpected issues
+                user_facing_critical_error = "A critical unexpected error occurred while processing the task."
+                # Use the new Minion.send_message wrapper
+                self.send_message(task.sender_id, user_facing_critical_error, "directive_reply_error")
+            except Exception as ex_send_crit:
+                self.logger.error(f"Failed to send critical error notification for task {task.id}: {ex_send_crit}")
+        finally:
+            self.metrics.stop_timer(timer_id) # Stop timer in finally block
+            # Always try to process the next task, regardless of current task's outcome
+            self._process_next_task()
 
     def run(self):
         self.logger.info(f"Minion {self.minion_id} run loop started. Current status: {self.current_status.value}")
@@ -1268,69 +1452,35 @@ class Minion:
         # No need to change request_id for this retry model, trace_id remains the same.
         
         try:
-            self.a2a_client.send_message(
+            # Use the new Minion.send_message wrapper
+            success = self.send_message(
                 recipient_agent_id=item["recipient_id"],
                 message_content=item["message_payload"], # Resend the original payload
                 message_type=item["message_type"]
             )
-            self.logger.info(f"Retried M2M '{item['message_type']}' to {item['recipient_id']} with request_id {request_id}. Retries left: {item['retries_left']}. Trace: {item['trace_id']}.")
+            if success:
+                self.logger.info(f"Successfully retried M2M '{item['message_type']}' to {item['recipient_id']} with request_id {request_id}. Retries left: {item['retries_left']}. Trace: {item['trace_id']}.")
+            else:
+                self.logger.error(f"Failed to retry M2M '{item['message_type']}' to {item['recipient_id']} via self.send_message. Will rely on next timeout or NACK.")
+            # self.logger.info(f"Retried M2M '{item['message_type']}' to {item['recipient_id']} with request_id {request_id}. Retries left: {item['retries_left']}. Trace: {item['trace_id']}.") # Logging is in send_message
         except Exception as e:
-            self.logger.error(f"Failed to retry M2M '{item['message_type']}' to {item['recipient_id']}: {e}", exc_info=True)
+            self.logger.error(f"Exception during retry of M2M '{item['message_type']}' to {item['recipient_id']}: {e}", exc_info=True)
             # If send fails on retry, it will timeout again or be NACKed.
             # Or, we could implement immediate removal if send fails catastrophically.
             # For now, rely on the next timeout cycle or NACK.
 
-    def _save_state_to_file(self):
-        """Saves the current operational state to a file, typically if paused."""
-        # This method is called during shutdown if the minion is paused or has a populated paused_state.
-        # Ensure self.paused_state is current if we are in a paused state.
-        # If _pause_workflow was called, self.paused_state is already populated by _serialize_state.
-        
-        if not self.paused_state and not self.is_paused:
-             self.logger.info("Minion not paused and no serialized state available. Skipping state file save on shutdown.")
-             return
-        
-        # If is_paused is true, _serialize_state() should have been called by _pause_workflow().
-        # If we are shutting down while paused, self.paused_state should be current.
-        # If we are not technically 'is_paused' but paused_state got populated (e.g. error during resume), still save.
-        
-        # We construct the full object to save, including the is_paused flag itself.
-        # If not currently paused but paused_state exists, we might be in an error state post-pause attempt.
-        # In this case, is_paused might be False, but we still want to save the last known paused_state.
-        # The `is_paused` flag in the file should reflect the minion's actual pause status at time of saving.
-        
-        # If self.is_paused is False, but self.paused_state is populated, it implies an issue.
-        # For robustness, if self.paused_state has data, we save it, reflecting current self.is_paused.
-        # This means if it failed to resume and is_paused became False, the file will show is_paused: false
-        # but will contain the state from *before* the failed resume. This seems reasonable.
-
-        state_to_save = {
-            "is_paused": self.is_paused,
-            "paused_state": self.paused_state, # This contains the actual operational data
-            "pending_messages_while_paused": list(self.pending_messages_while_paused), # Ensure it's a copy
-            "current_task_description": self.current_task_description, # Save this as well for context
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-
-        try:
-            # Ensure directory exists (though __init__ should create minion_state_storage_dir)
-            os.makedirs(os.path.dirname(self.state_file_path), exist_ok=True)
-            with open(self.state_file_path, 'w') as f:
-                json.dump(state_to_save, f, indent=4)
-            self.logger.info(f"Successfully saved minion state to {self.state_file_path}")
-        except Exception as e:
-            self.logger.error(f"Failed to save minion state to {self.state_file_path}: {e}", exc_info=True)
-
+    # MCP_AGENT_CHANGE: _save_state_to_file is removed. State saving is now handled by _save_current_state through StateManager.
 
     def shutdown(self):
         self.logger.info(f"Minion {self.minion_id} shutting down...")
         
-        # Save state if paused or if there's a populated paused_state (e.g. from a prior pause)
-        if self.is_paused or self.paused_state:
-            self.logger.info("Minion is paused or has a serialized state. Attempting to save state to file before shutdown.")
-            if not self.paused_state and self.is_paused: # If is_paused but state not yet serialized (e.g. abrupt shutdown during pausing)
-                self._serialize_state() # Try to capture current state
-            self._save_state_to_file()
+        # MCP_AGENT_CHANGE: Use _save_current_state to save state if paused or if a task is active.
+        # The _save_current_state method itself will use the StateManager.
+        if self.is_paused or self.current_task_description: # Save if paused or if there was an active task
+            self.logger.info("Minion is paused or has an active task context. Attempting to save state before shutdown.")
+            self._save_current_state()
+        else:
+            self.logger.info("Minion is not paused and has no active task context. No state to save on shutdown.")
 
         if self.a2a_client:
             self.a2a_client.stop_message_listener()
@@ -1350,6 +1500,40 @@ class Minion:
         
         # TODO: Any other cleanup (e.g., unregister from A2A server if supported)
         self.logger.info(f"Minion {self.minion_id} shutdown complete.")
+
+    def check_health(self) -> Dict[str, Any]:
+        """Perform a health check of all components."""
+        component_checks = []
+        
+        # Check LLM
+        if self.llm:
+            component_checks.append(self.llm.check_health().as_dict())
+        
+        # Check MCP Bridge
+        if self.mcp_bridge:
+            component_checks.append(self.mcp_bridge.check_health().as_dict())
+        
+        # Check A2A Client
+        if self.a2a_client:
+            component_checks.append(self.a2a_client.check_health().as_dict())
+        
+        # Determine overall status
+        statuses = [result["status"] for result in component_checks]
+        overall_status = "healthy"
+        if "unhealthy" in statuses:
+            overall_status = "unhealthy"
+        elif "degraded" in statuses:
+            overall_status = "degraded"
+        
+        return {
+            "minion_id": self.minion_id,
+            "status": overall_status,
+            "components": component_checks,
+            "uptime_seconds": time.time() - self.start_time.timestamp(),
+            "current_task": self.current_task_description,
+            "is_paused": self.is_paused,
+            "timestamp": time.time()
+        }
 
 if __name__ == "__main__":
     # Argparse setup

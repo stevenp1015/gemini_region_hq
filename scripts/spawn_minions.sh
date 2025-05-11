@@ -1,31 +1,32 @@
 #!/bin/bash
-# Wrapper script to spawn AI Minions.
 
-BASE_PROJECT_DIR_LOCAL="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VENV_PYTHON="${BASE_PROJECT_DIR_LOCAL}/venv_legion/bin/python"
-MINION_SPAWNER_PY="${BASE_PROJECT_DIR_LOCAL}/minion_spawner/spawn_legion.py"
+# Get the directory of this script to robustly find the project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." &> /dev/null && pwd)"
 
-DEFAULT_MINION_COUNT=3
-DEFAULT_A2A_SERVER_URL="http://127.0.0.1:8080"
+# Path to the virtual environment's Python interpreter
+VENV_PYTHON="$PROJECT_ROOT/venv_legion/bin/python"
 
-COUNT=${1:-$DEFAULT_MINION_COUNT}
-A2A_URL=${2:-$DEFAULT_A2A_SERVER_URL}
+# Check if the venv Python exists
+if [ ! -f "$VENV_PYTHON" ]; then
+    echo "Error: Virtual environment Python interpreter not found at $VENV_PYTHON"
+    echo "Please ensure the virtual environment 'venv_legion' exists in the project root ($PROJECT_ROOT/venv_legion)."
+    exit 1
+fi
 
-echo "Attempting to spawn $COUNT minions connected to A2A server: $A2A_URL"
+echo "Using Python interpreter: $VENV_PYTHON"
 
-if [ ! -f "$VENV_PYTHON" ]; then echo "ERROR: Python venv not found at $VENV_PYTHON"; exit 1; fi
-if [ ! -f "$MINION_SPAWNER_PY" ]; then echo "ERROR: Minion spawner script not found at $MINION_SPAWNER_PY"; exit 1; fi
+ARGS_TO_PASS=()
 
-# Set BASE_PROJECT_DIR for the spawner process
-export BASE_PROJECT_DIR="${BASE_PROJECT_DIR_LOCAL}"
+# Check if the first argument is a number (potential count)
+if [[ "$1" =~ ^[0-9]+$ ]]; then
+    ARGS_TO_PASS+=("--count" "$1")
+    shift # Remove the count from the list of arguments to process
+fi
 
-# Activate venv
-# shellcheck disable=SC1091
-source "${BASE_PROJECT_DIR_LOCAL}/venv_legion/bin/activate" || { echo "CRITICAL: Failed to activate Python venv. Aborting."; exit 1; }
+# Add any remaining arguments (e.g., --a2a-server)
+ARGS_TO_PASS+=("$@")
 
-"$VENV_PYTHON" "$MINION_SPAWNER_PY" --count "$COUNT" --a2a-server "$A2A_URL"
-
-# Deactivate venv (spawner script might run for a long time, so this might not be hit immediately if spawner is blocking)
-# The spawner itself doesn't need venv after launching child processes if they use the venv python directly.
-deactivate
-echo "Minion Spawner launched. It will manage Minion processes. Press Ctrl+C in its terminal to stop it."
+# Execute the spawner script using the venv's Python
+echo "Executing: $VENV_PYTHON $PROJECT_ROOT/minion_spawner/spawn_legion.py ${ARGS_TO_PASS[@]}"
+"$VENV_PYTHON" "$PROJECT_ROOT/minion_spawner/spawn_legion.py" "${ARGS_TO_PASS[@]}"

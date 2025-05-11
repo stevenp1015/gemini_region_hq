@@ -28,27 +28,58 @@ class ConfigManager:
             config_manager_logger.info(f"BASE_PROJECT_DIR not set. Inferred project root: {self.project_root}")
 
         self.config_toml_path: str = os.path.join(self.project_root, "system_configs/config.toml")
+        self.default_config_toml_path: str = os.path.join(self.project_root, "system_configs/default_config.toml")
         self.dotenv_path: str = os.path.join(self.project_root, "system_configs/.env.legion")
         
         self.config: Dict[str, Any] = {}
-        self._load_config_toml()
+        self._load_default_config()
+        self._load_config_toml() # Now loads user config and merges
         self._load_dotenv()
 
+    def _load_default_config(self):
+        try:
+            if os.path.exists(self.default_config_toml_path):
+                with open(self.default_config_toml_path, 'r', encoding='utf-8') as f:
+                    self.config = toml.load(f) # Initialize self.config with defaults
+                config_manager_logger.info(f"Successfully loaded default configuration from: {self.default_config_toml_path}")
+            else:
+                config_manager_logger.warning(f"Default configuration file not found at: {self.default_config_toml_path}. Starting with an empty config.")
+                self.config = {} # Ensure self.config is an empty dict if file not found
+        except toml.TomlDecodeError as e:
+            config_manager_logger.error(f"Error decoding TOML from {self.default_config_toml_path}: {e}", exc_info=True)
+            self.config = {}
+        except Exception as e:
+            config_manager_logger.error(f"An unexpected error occurred while loading {self.default_config_toml_path}: {e}", exc_info=True)
+            self.config = {}
+
+    def _deep_merge(self, base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Recursively merges override dict into base dict.
+        If a key exists in both and both values are dicts, it recursively merges them.
+        Otherwise, the value from override takes precedence.
+        """
+        for key, value in override.items():
+            if isinstance(value, dict) and key in base and isinstance(base[key], dict):
+                self._deep_merge(base[key], value)
+            else:
+                base[key] = value
+        return base
+
     def _load_config_toml(self):
+        """Loads the user's config.toml and merges it into the existing (default) config."""
         try:
             if os.path.exists(self.config_toml_path):
                 with open(self.config_toml_path, 'r', encoding='utf-8') as f:
-                    self.config = toml.load(f)
-                config_manager_logger.info(f"Successfully loaded configuration from: {self.config_toml_path}")
+                    user_config = toml.load(f)
+                config_manager_logger.info(f"Successfully loaded user configuration from: {self.config_toml_path}")
+                self._deep_merge(self.config, user_config) # Merge user config into defaults
             else:
-                config_manager_logger.warning(f"Configuration file not found at: {self.config_toml_path}. Using defaults and environment variables only.")
-                self.config = {} # Ensure self.config is an empty dict if file not found
+                config_manager_logger.info(f"User configuration file not found at: {self.config_toml_path}. Using default configuration only.")
+                # No need to do anything, self.config already holds defaults (or is empty if default also failed)
         except toml.TomlDecodeError as e:
-            config_manager_logger.error(f"Error decoding TOML from {self.config_toml_path}: {e}", exc_info=True)
-            self.config = {}
+            config_manager_logger.error(f"Error decoding user TOML from {self.config_toml_path}: {e}. Defaults will be used.", exc_info=True)
         except Exception as e:
-            config_manager_logger.error(f"An unexpected error occurred while loading {self.config_toml_path}: {e}", exc_info=True)
-            self.config = {}
+            config_manager_logger.error(f"An unexpected error occurred while loading user config {self.config_toml_path}: {e}. Defaults will be used.", exc_info=True)
 
     def _load_dotenv(self):
         if os.path.exists(self.dotenv_path):

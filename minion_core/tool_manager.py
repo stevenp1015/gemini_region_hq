@@ -2,12 +2,10 @@ import subprocess
 import os
 import json # For parsing structured output if Super-Tool provides it
 from .utils.logger import setup_logger
+from system_configs.config_manager import config # Added import
 
-# Assumes BASE_PROJECT_DIR is set as an environment variable or passed to Minion
-BASE_DIR = os.getenv("BASE_PROJECT_DIR", "../..") # Adjust as needed
-MCP_SUPER_TOOL_SCRIPT_PATH = os.path.join(BASE_DIR, "mcp_super_tool/src/main.js") # Corrected path to main.js
-MCP_CONFIG_PATH_FOR_SUPER_TOOL = os.path.join(BASE_DIR, "system_configs/mcp_config.json")
-SUPER_TOOL_ENV_PATH = os.path.join(BASE_DIR, "mcp_super_tool/.env") # .env for the super tool
+# Old path definitions removed
+
 
 class ToolManager:
     def __init__(self, minion_id, logger=None, mcp_bridge=None):
@@ -16,17 +14,23 @@ class ToolManager:
         self.mcp_bridge = mcp_bridge
         self.tools = {}  # Stores all registered tools {adapted_tool_name: tool_definition}
 
+        # Get paths from config manager
+        self.mcp_super_tool_script_path = config.get_path("paths.mcp_super_tool_script_path", "mcp_super_tool/src/main.js")
+        self.mcp_config_path_for_super_tool = config.get_path("paths.mcp_super_tool_config_path", "system_configs/mcp_config.json")
+        self.super_tool_env_path = config.get_path("paths.mcp_super_tool_env_path", "mcp_super_tool/.env")
+
+
         # Validate paths for the legacy Super-Tool
         # This tool might be deprecated or integrated differently later
         self.legacy_super_tool_config_valid = True
-        if not os.path.exists(MCP_SUPER_TOOL_SCRIPT_PATH):
-            self.logger.warning(f"Legacy MCP Super-Tool script not found at: {MCP_SUPER_TOOL_SCRIPT_PATH}")
+        if not self.mcp_super_tool_script_path or not os.path.exists(self.mcp_super_tool_script_path):
+            self.logger.warning(f"Legacy MCP Super-Tool script not found at: {self.mcp_super_tool_script_path}")
             self.legacy_super_tool_config_valid = False
-        if not os.path.exists(MCP_CONFIG_PATH_FOR_SUPER_TOOL):
-            self.logger.warning(f"Legacy MCP Super-Tool config not found at: {MCP_CONFIG_PATH_FOR_SUPER_TOOL}")
+        if not self.mcp_config_path_for_super_tool or not os.path.exists(self.mcp_config_path_for_super_tool):
+            self.logger.warning(f"Legacy MCP Super-Tool config not found at: {self.mcp_config_path_for_super_tool}")
             self.legacy_super_tool_config_valid = False
-        if not os.path.exists(SUPER_TOOL_ENV_PATH):
-            self.logger.warning(f"Legacy MCP Super-Tool .env file not found at: {SUPER_TOOL_ENV_PATH}. Super-Tool might fail.")
+        if not self.super_tool_env_path or not os.path.exists(self.super_tool_env_path): # Check existence of path itself
+            self.logger.warning(f"Legacy MCP Super-Tool .env file path not configured or file not found at: {self.super_tool_env_path}. Super-Tool might fail.")
             # Not setting legacy_super_tool_config_valid to False, as it might still work if env vars are global
 
         if self.mcp_bridge:
@@ -164,23 +168,23 @@ class ToolManager:
         
         command_array = [
             "node",
-            MCP_SUPER_TOOL_SCRIPT_PATH,
+            self.mcp_super_tool_script_path,
             "--prompt", natural_language_command,
-            "--config", MCP_CONFIG_PATH_FOR_SUPER_TOOL,
-            "--envFile", SUPER_TOOL_ENV_PATH
+            "--config", self.mcp_config_path_for_super_tool,
+            "--envFile", self.super_tool_env_path
         ]
         
         self.logger.debug(f"Executing legacy Super-Tool with command: {' '.join(command_array)}")
 
         try:
-            timeout_seconds = 300
+            timeout_seconds = config.get_int("minion_defaults.startup_timeout", 300) # Use config for timeout
             process = subprocess.run(
                 command_array,
                 capture_output=True,
                 text=True,
                 check=False,
                 timeout=timeout_seconds,
-                cwd=os.path.dirname(MCP_SUPER_TOOL_SCRIPT_PATH)
+                cwd=os.path.dirname(self.mcp_super_tool_script_path) if self.mcp_super_tool_script_path else config.get_project_root() # Use project root if script path is None
             )
 
             if process.returncode == 0:

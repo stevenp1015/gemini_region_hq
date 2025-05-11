@@ -443,3 +443,354 @@ Traceback (most recent call last):
 KeyError: slice(None, 100, None)
 2025-05-10 18:15:16,404 - Minion_Bravo - INFO - Attempting to start A2A message listener thread...
 2025-05-10 18:15:16,415 - Minion_Bravo - INFO - A2A registration successful, message listener thread should have been started by A2AClient.
+2025-05-11 03:15:32,901 - Minion_Bravo - INFO - Minion Bravo received KeyboardInterrupt. Shutting down.
+2025-05-11 03:15:32,951 - Minion_Bravo - INFO - Minion Bravo shutting down...
+2025-05-11 03:40:31,312 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 03:40:31,312 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 03:40:31,317 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 03:40:31,318 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 03:40:31,318 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 03:40:31,351 - Minion_Bravo - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["version"],"msg":"Field required","input":{"id":"Bravo","name":"Minion-Bravo","description":"An AI Minion in Steven's Army. Personality: Creative, Unconventional, Inquisitive","url":"http://127.0.0.1:8080/agents/Bravo","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills"],"msg":"Field required","input":{"id":"Bravo","name":"Minion-Bravo","description":"An AI Minion in Steven's Army. Personality: Creative, Unconventional, Inquisitive","url":"http://127.0.0.1:8080/agents/Bravo","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:40:31,351 - Minion_Bravo - ERROR - Failed to register with A2A server
+2025-05-11 03:40:31,352 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 03:40:31,352 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 03:40:31,352 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 03:40:31,352 - Minion_Bravo - WARNING - Not registered. Attempting registration.
+2025-05-11 03:40:31,355 - Minion_Bravo - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["version"],"msg":"Field required","input":{"id":"Bravo","name":"Minion-Bravo","description":"An AI Minion in Steven's Army. Personality: Creative, Unconventional, Inquisitive","url":"http://127.0.0.1:8080/agents/Bravo","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills"],"msg":"Field required","input":{"id":"Bravo","name":"Minion-Bravo","description":"An AI Minion in Steven's Army. Personality: Creative, Unconventional, Inquisitive","url":"http://127.0.0.1:8080/agents/Bravo","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:40:31,356 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 03:46:42,224 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 03:46:42,224 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 03:46:42,228 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 03:46:42,228 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 03:46:42,229 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 03:46:42,236 - Minion_Bravo - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["version"],"msg":"Field required","input":{"id":"Bravo","name":"Minion-Bravo","description":"An AI Minion in Steven's Army. Personality: Creative, Unconventional, Inquisitive","url":"http://127.0.0.1:8080/agents/Bravo","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills"],"msg":"Field required","input":{"id":"Bravo","name":"Minion-Bravo","description":"An AI Minion in Steven's Army. Personality: Creative, Unconventional, Inquisitive","url":"http://127.0.0.1:8080/agents/Bravo","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:46:42,237 - Minion_Bravo - ERROR - Failed to register with A2A server
+2025-05-11 03:46:42,237 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 03:46:42,237 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 03:46:42,237 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 03:46:42,237 - Minion_Bravo - WARNING - Not registered. Attempting registration.
+2025-05-11 03:46:42,239 - Minion_Bravo - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["version"],"msg":"Field required","input":{"id":"Bravo","name":"Minion-Bravo","description":"An AI Minion in Steven's Army. Personality: Creative, Unconventional, Inquisitive","url":"http://127.0.0.1:8080/agents/Bravo","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills"],"msg":"Field required","input":{"id":"Bravo","name":"Minion-Bravo","description":"An AI Minion in Steven's Army. Personality: Creative, Unconventional, Inquisitive","url":"http://127.0.0.1:8080/agents/Bravo","capabilities":{"streaming":false,"pushNotifications":false,"stateTransitionHistory":false}},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:46:42,239 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 03:59:28,184 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 03:59:28,185 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 03:59:28,189 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 03:59:28,189 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 03:59:28,189 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 03:59:28,199 - Minion_Bravo - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["skills",0,"id"],"msg":"Field required","input":{"name":"general_assistance","description":"Can perform general tasks and follow instructions."},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills",1,"id"],"msg":"Field required","input":{"name":"llm_interaction","description":"Can interact with Large Language Models."},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:59:28,199 - Minion_Bravo - ERROR - Failed to register with A2A server
+2025-05-11 03:59:28,199 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 03:59:28,199 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 03:59:28,199 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 03:59:28,199 - Minion_Bravo - WARNING - Not registered. Attempting registration.
+2025-05-11 03:59:28,201 - Minion_Bravo - ERROR - Failed to register agent. Status: 400, Response: {"status":"error","message":"Invalid agent card format","details":[{"type":"missing","loc":["skills",0,"id"],"msg":"Field required","input":{"name":"general_assistance","description":"Can perform general tasks and follow instructions."},"url":"https://errors.pydantic.dev/2.11/v/missing"},{"type":"missing","loc":["skills",1,"id"],"msg":"Field required","input":{"name":"llm_interaction","description":"Can interact with Large Language Models."},"url":"https://errors.pydantic.dev/2.11/v/missing"}]}
+2025-05-11 03:59:28,201 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 04:02:27,048 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 04:02:27,049 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 04:02:27,053 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 04:02:27,053 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 04:02:27,053 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 04:02:27,057 - Minion_Bravo - INFO - Successfully registered agent Bravo
+2025-05-11 04:02:27,057 - Minion_Bravo - INFO - Server assigned different ID: Minion-Bravo. Updating.
+2025-05-11 04:02:27,058 - Minion_Bravo - INFO - A2A client initialized and registered
+2025-05-11 04:02:27,058 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 04:02:27,058 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 04:02:27,058 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 04:02:27,060 - Minion_Bravo - INFO - Starting message polling loop for Minion-Bravo
+2025-05-11 04:02:27,063 - Minion_Bravo - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 04:02:27,064 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 15:39:51,048 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 15:39:51,048 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 15:39:51,054 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 15:39:51,054 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 15:39:51,054 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 15:39:51,063 - Minion_Bravo - INFO - Successfully registered agent Bravo
+2025-05-11 15:39:51,063 - Minion_Bravo - INFO - Server assigned different ID: Minion-Bravo. Updating.
+2025-05-11 15:39:51,063 - Minion_Bravo - INFO - A2A client initialized and registered
+2025-05-11 15:39:51,064 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 15:39:51,064 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 15:39:51,064 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 15:39:51,071 - Minion_Bravo - INFO - Starting message polling loop for Minion-Bravo
+2025-05-11 15:39:51,075 - Minion_Bravo - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 15:39:51,075 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 15:44:27,814 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 15:44:27,814 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 15:44:27,819 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 15:44:27,819 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 15:44:27,819 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 15:44:27,827 - Minion_Bravo - ERROR - Exception during registration: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1115, in _wrap_create_connection
+    sock = await aiohappyeyeballs.start_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 122, in start_connection
+    raise first_exception
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 73, in start_connection
+    sock = await _connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 208, in _connect_sock
+    await loop.sock_connect(sock, address)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 651, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 691, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8080)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/a2a_async_client.py", line 55, in register_agent
+    async with self.session.post(url, json=self.agent_card) as response:
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 1425, in __aenter__
+    self._resp: _RetType = await self._coro
+                           ^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 703, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 548, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1056, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1406, in _create_direct_connection
+    raise last_exc
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1375, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1130, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+2025-05-11 15:44:27,829 - Minion_Bravo - ERROR - Failed to register with A2A server
+2025-05-11 15:44:27,829 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 15:44:27,829 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 15:44:27,829 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 15:44:27,829 - Minion_Bravo - WARNING - Not registered. Attempting registration.
+2025-05-11 15:44:27,834 - Minion_Bravo - ERROR - Exception during registration: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1115, in _wrap_create_connection
+    sock = await aiohappyeyeballs.start_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 122, in start_connection
+    raise first_exception
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 73, in start_connection
+    sock = await _connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 208, in _connect_sock
+    await loop.sock_connect(sock, address)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 651, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 691, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8080)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/ttig/gemini_legion_hq/minion_core/a2a_async_client.py", line 55, in register_agent
+    async with self.session.post(url, json=self.agent_card) as response:
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 1425, in __aenter__
+    self._resp: _RetType = await self._coro
+                           ^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 703, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 548, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1056, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1406, in _create_direct_connection
+    raise last_exc
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1375, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1130, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+2025-05-11 15:44:27,836 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 15:47:24,377 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 15:47:24,377 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 15:47:24,381 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 15:47:24,381 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 15:47:24,381 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 15:47:24,388 - Minion_Bravo - INFO - Successfully registered agent Bravo
+2025-05-11 15:47:24,388 - Minion_Bravo - INFO - Server assigned different ID: Minion-Bravo. Updating.
+2025-05-11 15:47:24,388 - Minion_Bravo - INFO - A2A client initialized and registered
+2025-05-11 15:47:24,388 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 15:47:24,388 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 15:47:24,388 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 15:47:24,390 - Minion_Bravo - INFO - Starting message polling loop for Minion-Bravo
+2025-05-11 15:47:24,391 - Minion_Bravo - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 15:47:24,391 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 16:17:08,924 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 16:17:08,924 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 16:17:08,928 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 16:17:08,928 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 16:17:08,928 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 16:17:08,937 - Minion_Bravo - ERROR - Exception during registration: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1115, in _wrap_create_connection
+    sock = await aiohappyeyeballs.start_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 122, in start_connection
+    raise first_exception
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 73, in start_connection
+    sock = await _connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 208, in _connect_sock
+    await loop.sock_connect(sock, address)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 651, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 691, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8080)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/minion_core/a2a_async_client.py", line 55, in register_agent
+    async with self.session.post(url, json=self.agent_card) as response:
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 1425, in __aenter__
+    self._resp: _RetType = await self._coro
+                           ^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 703, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 548, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1056, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1406, in _create_direct_connection
+    raise last_exc
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1375, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1130, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+2025-05-11 16:17:08,939 - Minion_Bravo - ERROR - Failed to register with A2A server
+2025-05-11 16:17:08,939 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 16:17:08,939 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 16:17:08,939 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 16:17:08,939 - Minion_Bravo - WARNING - Not registered. Attempting registration.
+2025-05-11 16:17:08,945 - Minion_Bravo - ERROR - Exception during registration: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1115, in _wrap_create_connection
+    sock = await aiohappyeyeballs.start_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 122, in start_connection
+    raise first_exception
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 73, in start_connection
+    sock = await _connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 208, in _connect_sock
+    await loop.sock_connect(sock, address)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 651, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/selector_events.py", line 691, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 61] Connect call failed ('127.0.0.1', 8080)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/ttig/GEMINI_LEGION_HQ/minion_core/a2a_async_client.py", line 55, in register_agent
+    async with self.session.post(url, json=self.agent_card) as response:
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 1425, in __aenter__
+    self._resp: _RetType = await self._coro
+                           ^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/client.py", line 703, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 548, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1056, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1406, in _create_direct_connection
+    raise last_exc
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1375, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ttig/GEMINI_LEGION_HQ/venv_legion/lib/python3.12/site-packages/aiohttp/connector.py", line 1130, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8080 ssl:default [Connect call failed ('127.0.0.1', 8080)]
+2025-05-11 16:17:08,947 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 16:18:57,867 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 16:18:57,867 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 16:18:57,871 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 16:18:57,872 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 16:18:57,872 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 16:18:57,876 - Minion_Bravo - INFO - Successfully registered agent Bravo
+2025-05-11 16:18:57,876 - Minion_Bravo - INFO - Server assigned different ID: Minion-Bravo. Updating.
+2025-05-11 16:18:57,876 - Minion_Bravo - INFO - A2A client initialized and registered
+2025-05-11 16:18:57,876 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 16:18:57,876 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 16:18:57,876 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 16:18:57,877 - Minion_Bravo - INFO - Starting message polling loop for Minion-Bravo
+2025-05-11 16:18:57,882 - Minion_Bravo - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 16:18:57,882 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 16:26:27,896 - Minion_Bravo - INFO - Received A2A message: {'sender_id': 'STEVEN_GUI_COMMANDER', 'content': 'can someone answer me? PARISHILTON', 'message_type...
+2025-05-11 16:26:27,897 - Minion_Bravo - INFO - Received directive: can someone answer me? PARISHILTON...
+2025-05-11 16:26:27,898 - Minion_Bravo - INFO - Added task '5bb49b11-fe48-4721-b5d6-5407ee51bdfe' to queue with priority NORMAL
+2025-05-11 16:26:27,898 - Minion_Bravo - INFO - Started task '5bb49b11-fe48-4721-b5d6-5407ee51bdfe'
+2025-05-11 16:26:27,901 - Minion_Bravo - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 16:26:27,901 - Minion_Bravo - INFO - Sent state update: running, Starting task processing, active: 1
+2025-05-11 16:48:41,346 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 16:48:41,346 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 16:48:41,351 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 16:48:41,351 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 16:48:41,351 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 16:48:41,444 - Minion_Bravo - INFO - Successfully registered agent Bravo
+2025-05-11 16:48:41,444 - Minion_Bravo - INFO - Server assigned different ID: Minion-Bravo. Updating.
+2025-05-11 16:48:41,445 - Minion_Bravo - INFO - A2A client initialized and registered
+2025-05-11 16:48:41,445 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 16:48:41,445 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 16:48:41,445 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 16:48:41,448 - Minion_Bravo - INFO - Starting message polling loop for Minion-Bravo
+2025-05-11 16:48:41,451 - Minion_Bravo - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 16:48:41,452 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 16:50:11,414 - Minion_Bravo - INFO - Received A2A message: {'sender_id': 'STEVEN_GUI_COMMANDER', 'content': 'is nicolerichie here?', 'message_type': 'user_broa...
+2025-05-11 16:50:11,416 - Minion_Bravo - INFO - Received directive: is nicolerichie here?...
+2025-05-11 16:50:11,416 - Minion_Bravo - INFO - Added task '10f03b9e-37d9-41b4-bb09-7538545171f8' to queue with priority NORMAL
+2025-05-11 16:50:11,416 - Minion_Bravo - INFO - Started task '10f03b9e-37d9-41b4-bb09-7538545171f8'
+2025-05-11 16:50:11,418 - Minion_Bravo - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 16:50:11,418 - Minion_Bravo - INFO - Sent state update: running, Starting task processing, active: 1
+2025-05-11 16:53:00,032 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 16:53:00,032 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 16:53:00,036 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 16:53:00,036 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 16:53:00,036 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 16:53:00,042 - Minion_Bravo - INFO - Successfully registered agent Bravo
+2025-05-11 16:53:00,042 - Minion_Bravo - INFO - Server assigned different ID: Minion-Bravo. Updating.
+2025-05-11 16:53:00,042 - Minion_Bravo - INFO - A2A client initialized and registered
+2025-05-11 16:53:00,042 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 16:53:00,042 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 16:53:00,042 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 16:53:00,044 - Minion_Bravo - INFO - Starting message polling loop for Minion-Bravo
+2025-05-11 16:53:00,045 - Minion_Bravo - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 16:53:00,045 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 16:53:13,081 - Minion_Bravo - INFO - Received A2A message: {'session_id': '2baf1d76', 'initiator_id': 'STEVEN_GUI_COMMANDER', 'participants': ['Minion-Bravo'],...
+2025-05-11 17:07:25,044 - Minion_Bravo - INFO - Initializing Minion Bravo (Name: Minion-Bravo)
+2025-05-11 17:07:25,044 - Minion_Bravo - INFO - Personality: Creative, Unconventional, Inquisitive
+2025-05-11 17:07:25,051 - Minion_Bravo - INFO - LLMInterface initialized successfully with gemini-2.5-pro-preview-05-06.
+2025-05-11 17:07:25,051 - Minion_Bravo - INFO - LLMInterface metrics storage directory: /Users/ttig/system_data/metrics/llm_interface_Bravo
+2025-05-11 17:07:25,051 - Minion_Bravo - INFO - LLM interface initialized
+2025-05-11 17:07:25,057 - Minion_Bravo - INFO - Successfully registered agent Bravo
+2025-05-11 17:07:25,057 - Minion_Bravo - INFO - Server assigned different ID: Minion-Bravo. Updating.
+2025-05-11 17:07:25,057 - Minion_Bravo - INFO - A2A client initialized and registered
+2025-05-11 17:07:25,057 - Minion_Bravo - INFO - Registered minion Bravo
+2025-05-11 17:07:25,058 - Minion_Bravo - INFO - Minion Bravo registered with its local TaskCoordinator.
+2025-05-11 17:07:25,058 - Minion_Bravo - INFO - 'global_resource_monitor' not found. Adaptive constraints based on global monitor disabled.
+2025-05-11 17:07:25,059 - Minion_Bravo - INFO - Starting message polling loop for Minion-Bravo
+2025-05-11 17:07:25,062 - Minion_Bravo - INFO - Message sent to STEVEN_GUI_COMMANDER
+2025-05-11 17:07:25,062 - Minion_Bravo - INFO - Sent state update: idle, Minion initialized and idle
+2025-05-11 17:07:35,092 - Minion_Bravo - INFO - Received A2A message: {'session_id': '0fae2f79', 'initiator_id': 'STEVEN_GUI_COMMANDER', 'participants': ['Minion-Bravo'],...

@@ -4,6 +4,7 @@ import sys # Added for sys.path manipulation
 import time
 # import json # No longer directly used
 import argparse
+import asyncio # Added for asyncio
 
 # Ensure the project root is in sys.path to find system_configs.config_manager
 project_root_for_imports = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -11,14 +12,16 @@ if project_root_for_imports not in sys.path:
     sys.path.insert(0, project_root_for_imports)
 
 from system_configs.config_manager import config # Import the global config instance
+from minion_core.async_minion import AsyncMinion # Import AsyncMinion
+from minion_core.utils.resource_monitor import ResourceMonitor
 
 # --- Paths and Configs from ConfigManager ---
 PROJECT_ROOT = config.get_project_root()
 LOGS_DIR = config.get_path("global.logs_dir", "logs") # Uses PROJECT_ROOT implicitly
 
 # Paths for spawner operation - consider making these configurable in config.toml under [minion_spawner]
-MINION_SCRIPT_PATH = config.get_path("minion_spawner.minion_script_path", os.path.join(PROJECT_ROOT, "minion_core/main_minion.py"))
-VENV_PYTHON_PATH = config.get_path("minion_spawner.venv_python_path", os.path.join(PROJECT_ROOT, "venv_legion/bin/python"))
+MINION_SCRIPT_PATH = config.get_path("minion_spawner.minion_script_path", os.path.join(PROJECT_ROOT, "minion_core/main_minion.py")) # This might be less relevant now
+VENV_PYTHON_PATH = config.get_path("minion_spawner.venv_python_path", os.path.join(PROJECT_ROOT, "venv_legion/bin/python")) # This might be less relevant now
 SPAWNER_LOG_FILE = os.path.join(LOGS_DIR, "minion_spawner.log")
 
 # Ensure logs directory exists for spawner log
@@ -41,17 +44,17 @@ def spawner_log(message, level="INFO"):
 MINION_DEFINITIONS_FROM_CONFIG = config.get_list("minion_spawner.minions", [])
 if not MINION_DEFINITIONS_FROM_CONFIG:
     spawner_log("Warning: No minion definitions found in config.toml under [minion_spawner.minions]. Spawner will not launch any minions.", level="WARNING")
-    # Optionally, provide a default fallback if desired, or exit. For now, it will spawn 0.
 
 def spawn_minions(num_minions_to_spawn_arg, a2a_server_url_arg):
-    if not os.path.exists(VENV_PYTHON_PATH):
-        spawner_log(f"Python virtual environment not found at {VENV_PYTHON_PATH}. Check 'minion_spawner.venv_python_path' in config.toml or ensure deployment script ran.", level="ERROR")
-        return [], []
-    if not os.path.exists(MINION_SCRIPT_PATH):
-        spawner_log(f"Minion script not found at {MINION_SCRIPT_PATH}. Check 'minion_spawner.minion_script_path' in config.toml or ensure deployment script ran correctly.", level="ERROR")
-        return [], []
+    # Existing validation code... (partially kept, some not needed for async in-process)
+    # if not os.path.exists(VENV_PYTHON_PATH): # Not needed for in-process
+    #     spawner_log(f"Python virtual environment not found at {VENV_PYTHON_PATH}. Check 'minion_spawner.venv_python_path' in config.toml or ensure deployment script ran.", level="ERROR")
+    #     return [], []
+    # if not os.path.exists(MINION_SCRIPT_PATH): # Not needed for in-process
+    #     spawner_log(f"Minion script not found at {MINION_SCRIPT_PATH}. Check 'minion_spawner.minion_script_path' in config.toml or ensure deployment script ran correctly.", level="ERROR")
+    #     return [], []
 
-    processes = []
+    # processes = [] # Not used in this version
     spawned_minion_ids = []
     
     # Use minion definitions from config
@@ -68,74 +71,91 @@ def spawn_minions(num_minions_to_spawn_arg, a2a_server_url_arg):
     elif num_minions_to_spawn_arg == 0 and num_available_definitions > 0 : # If count is 0, but definitions exist, spawn all defined
         spawner_log(f"--count is 0, spawning all {num_available_definitions} defined minions.", level="INFO")
         num_to_spawn_final = num_available_definitions
-
-
-    default_user_facing_name = config.get_str("minion_defaults.default_user_facing_name", "Minion") # Read from config
-
+    
+    # Create a list to hold minion objects for the async version
+    minions = []
+    default_user_facing_name = config.get_str("minion_defaults.default_user_facing_name", "Minion")
+    
     for i in range(num_to_spawn_final):
         minion_def = actual_minion_definitions[i]
         minion_id = minion_def.get("id")
         personality = minion_def.get("personality")
-        # For now, use the default name. Future enhancements could allow per-minion names from config.
-        user_facing_name = default_user_facing_name
-        # A simple naming scheme if spawning multiple and we want them to be unique for now, e.g. "Minion-Alpha"
-        # This could be made more sophisticated based on minion_def if needed.
-        # For this initial step, we'll pass the same default or a slightly modified one.
-        # If there's more than one minion, append the ID to the default name.
+        
+        # Resolve user_facing_name as in the original...
         if num_to_spawn_final > 1:
             user_facing_name = f"{default_user_facing_name}-{minion_id}"
         else:
             user_facing_name = default_user_facing_name
-
-
+        
         if not minion_id or not personality:
-            spawner_log(f"Skipping minion definition at index {i} due to missing 'id' or 'personality': {minion_def}", level="WARNING")
+            spawner_log(f"Skipping minion definition due to missing 'id' or 'personality': {minion_def}", level="WARNING")
             continue
         
-        spawner_log(f"Spawning Minion {minion_id} (Name: {user_facing_name}) with personality: {personality}...")
+        spawner_log(f"Creating Minion {minion_id} (Name: {user_facing_name}) with personality: {personality}...")
         
-        # Set BASE_PROJECT_DIR for the Minion process environment
+        # Set environment variables - less critical for in-process, but good for consistency if some parts still rely on them
         minion_env = os.environ.copy()
-        minion_env["BASE_PROJECT_DIR"] = PROJECT_ROOT # Use PROJECT_ROOT from ConfigManager
-        minion_env["PYTHONUNBUFFERED"] = "1" # For unbuffered output from subprocess
-
-        # Add a2a_framework/samples/python to PYTHONPATH for the minion process
-        # so it can find the 'common' module.
+        minion_env["BASE_PROJECT_DIR"] = PROJECT_ROOT
+        minion_env["PYTHONUNBUFFERED"] = "1"
+        
+        # Update PYTHONPATH - less critical for in-process if imports are direct
         a2a_python_path = os.path.join(PROJECT_ROOT, "a2a_framework", "samples", "python")
         current_pythonpath = minion_env.get("PYTHONPATH", "")
         if current_pythonpath:
             minion_env["PYTHONPATH"] = f"{a2a_python_path}{os.pathsep}{current_pythonpath}"
         else:
             minion_env["PYTHONPATH"] = a2a_python_path
-        spawner_log(f"Setting PYTHONPATH for Minion {minion_id} to: {minion_env['PYTHONPATH']}", level="DEBUG") # DEBUG level for verbosity
+        # spawner_log(f"Effective PYTHONPATH for Minion {minion_id} context: {minion_env['PYTHONPATH']}", level="DEBUG")
 
-        # BIAS_ACTION: Launch each Minion in its own process.
-        # Ensure logs for each Minion go to their specific files.
-        # The main_minion.py script handles its own logging setup based on its ID.
+        # For the asyncio version, we'll create and store minion objects
+        # that we'll run in the main process using asyncio
         try:
-            process = subprocess.Popen(
-                [VENV_PYTHON_PATH, MINION_SCRIPT_PATH, "--id", minion_id, "--name", user_facing_name, "--personality", personality, "--a2a-server", a2a_server_url_arg],
-                stdout=subprocess.PIPE, # Capture stdout
-                stderr=subprocess.PIPE, # Capture stderr
-                env=minion_env,
-                text=True, # Decode stdout/stderr as text
-                # cwd=BASE_DIR # Run from base project dir
+            minion = AsyncMinion(
+                minion_id=minion_id,
+                user_facing_name=user_facing_name,
+                personality_traits_str=personality,
+                a2a_server_url_override=a2a_server_url_arg
             )
-            processes.append(process)
+            minions.append(minion)
             spawned_minion_ids.append(minion_id)
-            spawner_log(f"Minion {minion_id} process started (PID: {process.pid}). Output will be piped to its log file and spawner log for errors.")
-            
-            # Non-blocking read of stdout/stderr can be complex.
-            # For now, we're letting Minions log to their own files.
-            # Spawner can periodically check process.poll() if needed.
-            
+            spawner_log(f"Created Minion {minion_id} object successfully")
         except Exception as e:
-            spawner_log(f"Failed to spawn Minion {minion_id}. Error: {e}", level="ERROR")
+            spawner_log(f"Failed to create Minion {minion_id} object: {e}", level="ERROR")
+    
+    return minions, spawned_minion_ids
 
-        time.sleep(2) # Stagger spawning slightly
+async def run_minions(minions):
+    """Run multiple minions concurrently using asyncio."""
+    spawner_log(f"Starting {len(minions)} minions using asyncio...")
+    
+    # Create tasks for each minion
+    tasks = [minion.run() for minion in minions]
+    
+    # Wait for all minions to complete (or until interrupted)
+    try:
+        await asyncio.gather(*tasks)
+    except asyncio.CancelledError:
+        spawner_log("Minion tasks cancelled", level="WARNING")
+    except Exception as e:
+        spawner_log(f"Error running minions: {e}", level="ERROR")
+    
+    spawner_log("All minions have stopped")
 
-    spawner_log(f"Attempted to spawn {num_to_spawn_final} minions. Check individual minion logs in {LOGS_DIR}.")
-    return processes, spawned_minion_ids
+def init_resource_monitor():
+    """Initialize the resource monitor."""
+    monitor = ResourceMonitor(check_interval=10.0) # Using spawner_log for consistency
+    
+    def alert_handler(resources, is_overloaded):
+        if is_overloaded:
+            spawner_log(f"ALERT: System resources critical: "
+                        f"CPU {resources.get('cpu_percent')}%, "
+                        f"Memory {resources.get('memory_percent')}%, "
+                        f"Disk {resources.get('disk_percent')}%",
+                        level="WARNING")
+    
+    monitor.add_alert_callback(alert_handler)
+    monitor.start()
+    return monitor
 
 if __name__ == "__main__":
     # Construct default A2A server URL from config for argparse help text and default
@@ -143,7 +163,7 @@ if __name__ == "__main__":
     default_a2a_port_for_arg = config.get_int("a2a_server.port", 8080)
     default_a2a_url_for_arg = f"http://{default_a2a_host_for_arg}:{default_a2a_port_for_arg}"
 
-    parser = argparse.ArgumentParser(description="Spawn AI Minions for Steven's Army.")
+    parser = argparse.ArgumentParser(description="Spawn AI Minions for Steven's Army (Async Version).")
     parser.add_argument(
         "--count",
         type=int,
@@ -158,15 +178,12 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    spawner_log("Minion Spawner Initializing...")
+    spawner_log("Minion Spawner Initializing (Async Mode)...")
     spawner_log(f"Project Root: {PROJECT_ROOT}")
     spawner_log(f"Logs Directory: {LOGS_DIR}")
-    spawner_log(f"Minion Script: {MINION_SCRIPT_PATH}")
-    spawner_log(f"Venv Python: {VENV_PYTHON_PATH}")
+    # spawner_log(f"Minion Script: {MINION_SCRIPT_PATH}") # Less relevant
+    # spawner_log(f"Venv Python: {VENV_PYTHON_PATH}") # Less relevant
     spawner_log(f"Minion definitions in config: {len(MINION_DEFINITIONS_FROM_CONFIG)}")
-
-
-    # ConfigManager handles BASE_PROJECT_DIR internally. No need to set os.environ here.
 
     # Check A2A server URL format (from arg, which might override config)
     a2a_server_url_to_use = args.a2a_server
@@ -175,45 +192,30 @@ if __name__ == "__main__":
         sys.exit(1)
     
     spawner_log(f"Targeting A2A Server at: {a2a_server_url_to_use}")
-    spawner_log(f"Attempting to spawn {args.count} minions (respecting defined limit).")
+    spawner_log(f"Attempting to create {args.count} minion objects (respecting defined limit).")
 
-    active_processes, active_ids = spawn_minions(args.count, a2a_server_url_to_use)
+    minions, active_ids = spawn_minions(args.count, a2a_server_url_to_use)
     
-    if not active_processes:
-        spawner_log("No Minion processes were started. Exiting.", level="ERROR")
+    if not minions:
+        spawner_log("No Minion objects were created. Exiting.", level="ERROR")
         sys.exit(1)
-
-    spawner_log(f"Minions spawned: {', '.join(active_ids)}. Monitoring their processes...")
-    spawner_log("Press Ctrl+C to stop the spawner and terminate Minion processes.")
-
+    
+    spawner_log(f"Created minions: {', '.join(active_ids)}. Starting async execution...")
+    spawner_log("Press Ctrl+C to stop the spawner and initiate minion shutdown.")
+    
+    # Initialize resource monitor
+    resource_monitor = init_resource_monitor()
+    globals()['global_resource_monitor'] = resource_monitor
+    
     try:
-        while True:
-            for i, proc in enumerate(active_processes):
-                if proc.poll() is not None: # Process has terminated
-                    spawner_log(f"Minion {active_ids[i]} (PID: {proc.pid}) has terminated with code {proc.returncode}.", level="WARNING")
-                    # Capture any final output
-                    stdout, stderr = proc.communicate()
-                    if stdout: spawner_log(f"Minion {active_ids[i]} STDOUT: {stdout.strip()}", level="INFO")
-                    if stderr: spawner_log(f"Minion {active_ids[i]} STDERR: {stderr.strip()}", level="ERROR")
-                    # Remove from list of active processes
-                    active_processes.pop(i)
-                    active_ids.pop(i)
-                    break # Restart loop since list was modified
-            if not active_processes:
-                spawner_log("All Minion processes have terminated.", level="INFO")
-                break
-            time.sleep(5)
+        # Run the asyncio event loop
+        asyncio.run(run_minions(minions))
     except KeyboardInterrupt:
-        spawner_log("Spawner received KeyboardInterrupt. Terminating Minion processes...", level="INFO")
-        for i, proc in enumerate(active_processes):
-            spawner_log(f"Terminating Minion {active_ids[i]} (PID: {proc.pid})...")
-            proc.terminate() # Send SIGTERM
-            try:
-                proc.wait(timeout=10) # Wait for graceful shutdown
-                spawner_log(f"Minion {active_ids[i]} terminated.")
-            except subprocess.TimeoutExpired:
-                spawner_log(f"Minion {active_ids[i]} did not terminate gracefully. Sending SIGKILL...", level="WARNING")
-                proc.kill() # Force kill
-                spawner_log(f"Minion {active_ids[i]} killed.")
+        spawner_log("Spawner received KeyboardInterrupt. Initiating shutdown of minions...", level="INFO")
+        # asyncio.run will handle the cancellation of tasks within run_minions
+        # and the individual minion shutdown methods should be called.
     finally:
+        # Stop resource monitor
+        if 'resource_monitor' in locals() and resource_monitor:
+            resource_monitor.stop()
         spawner_log("Minion Spawner shut down.")

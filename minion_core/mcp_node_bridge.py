@@ -1,26 +1,52 @@
 import requests
 import json
 import logging
+from minion_core.utils.health import HealthStatus, HealthCheckResult, HealthCheckable
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__) # Global logger removed
 
-class McpNodeBridge:
+class McpNodeBridge(HealthCheckable):
     """
     A client bridge to interact with a Node.js-based MCP service.
     """
-    def __init__(self, service_base_url: str):
+    def __init__(self, base_url: str, logger=None):
         """
         Initializes the McpNodeBridge.
 
         Args:
-            service_base_url: The base URL of the Node.js MCP service (e.g., "http://localhost:3000").
+            base_url: The base URL of the Node.js MCP service (e.g., "http://localhost:3000").
+            logger: Optional logger instance. If None, a new logger will be created.
         """
-        if not service_base_url.startswith(("http://", "https://")):
-            raise ValueError("service_base_url must start with http:// or https://")
-        self.service_base_url = service_base_url.rstrip('/')
-        logger.info(f"McpNodeBridge initialized with service base URL: {self.service_base_url}")
+        self.logger = logger if logger else logging.getLogger(__name__)
+        if not base_url.startswith(("http://", "https://")):
+            self.logger.error(f"Invalid base_url provided: {base_url}. Must start with http:// or https://")
+            raise ValueError("base_url must start with http:// or https://")
+        self.base_url = base_url.rstrip('/')
+        self.is_available = False # Default to not available
+        self.logger.info(f"McpNodeBridge attempting to initialize with service base URL: {self.base_url}")
+
+        # Connectivity Check
+        health_check_url = f"{self.base_url}/health"
+        try:
+            self.logger.info(f"Performing connectivity check to {health_check_url}...")
+            response = requests.get(health_check_url, timeout=5) # 5 second timeout
+            if response.status_code == 200:
+                self.is_available = True
+                self.logger.info(f"Successfully connected to MCP service at {self.base_url}. Status: {response.status_code}. Service is available.")
+            else:
+                self.is_available = False
+                self.logger.warning(f"Failed to connect to MCP service at {self.base_url}. Status code: {response.status_code}. Service marked as unavailable.")
+        except requests.exceptions.RequestException as e:
+            self.is_available = False
+            self.logger.error(f"Connectivity check to {health_check_url} failed: {e}. Service marked as unavailable.")
+        except Exception as e: # Catch any other unexpected errors during health check
+            self.is_available = False
+            self.logger.error(f"An unexpected error occurred during connectivity check to {health_check_url}: {e}. Service marked as unavailable.")
+        
+        self.logger.info(f"McpNodeBridge initialized. Service at {self.base_url} is_available: {self.is_available}")
+
 
     def get_mcp_tools(self) -> list:
         """
@@ -33,27 +59,31 @@ class McpNodeBridge:
             requests.exceptions.RequestException: If the request fails.
             ValueError: If the response is not valid JSON or an unexpected status code is received.
         """
-        tools_url = f"{self.service_base_url}/tools"
-        logger.info(f"Fetching MCP tools from: {tools_url}")
+        if not self.is_available:
+            self.logger.warning("MCP service is not available. Skipping get_mcp_tools.")
+            return []
+            
+        tools_url = f"{self.base_url}/tools"
+        self.logger.info(f"Fetching MCP tools from: {tools_url}")
         try:
             response = requests.get(tools_url, timeout=10) # 10 second timeout
             response.raise_for_status()  # Raises an HTTPError for bad responses (4XX or 5XX)
-            logger.info(f"Received response from {tools_url} with status: {response.status_code}")
+            self.logger.info(f"Received response from {tools_url} with status: {response.status_code}")
             return response.json()
         except requests.exceptions.HTTPError as http_err:
-            logger.error(f"HTTP error occurred while fetching tools: {http_err} - Response: {response.text}")
+            self.logger.error(f"HTTP error occurred while fetching tools: {http_err} - Response: {response.text}")
             raise
         except requests.exceptions.ConnectionError as conn_err:
-            logger.error(f"Connection error occurred while fetching tools: {conn_err}")
+            self.logger.error(f"Connection error occurred while fetching tools: {conn_err}")
             raise
         except requests.exceptions.Timeout as timeout_err:
-            logger.error(f"Timeout error occurred while fetching tools: {timeout_err}")
+            self.logger.error(f"Timeout error occurred while fetching tools: {timeout_err}")
             raise
         except requests.exceptions.RequestException as req_err:
-            logger.error(f"An error occurred while fetching tools: {req_err}")
+            self.logger.error(f"An error occurred while fetching tools: {req_err}")
             raise
         except json.JSONDecodeError as json_err:
-            logger.error(f"Failed to decode JSON response from {tools_url}: {json_err} - Response: {response.text}")
+            self.logger.error(f"Failed to decode JSON response from {tools_url}: {json_err} - Response: {response.text}")
             raise ValueError(f"Invalid JSON response from {tools_url}")
 
     def call_mcp_tool(self, server_name: str, tool_name: str, arguments: dict) -> dict:
@@ -72,33 +102,66 @@ class McpNodeBridge:
             requests.exceptions.RequestException: If the request fails.
             ValueError: If the response is not valid JSON or an unexpected status code is received.
         """
-        execute_url = f"{self.service_base_url}/execute"
+        if not self.is_available:
+            self.logger.warning(f"MCP service is not available. Skipping call_mcp_tool for {server_name}/{tool_name}.")
+            # Consider what to return or raise here. For now, raising an error might be appropriate.
+            raise RuntimeError(f"MCP service at {self.base_url} is not available. Cannot call tool {server_name}/{tool_name}.")
+
+        execute_url = f"{self.base_url}/execute"
         payload = {
             "server_name": server_name,
             "tool_name": tool_name,
             "arguments": arguments
         }
-        logger.info(f"Calling MCP tool at: {execute_url} with payload: {json.dumps(payload, indent=2)}")
+        self.logger.info(f"Calling MCP tool at: {execute_url} with payload: {json.dumps(payload, indent=2)}")
         try:
             response = requests.post(execute_url, json=payload, timeout=30) # 30 second timeout for potentially longer operations
             response.raise_for_status()
-            logger.info(f"Received response from {execute_url} with status: {response.status_code}")
+            self.logger.info(f"Received response from {execute_url} with status: {response.status_code}")
             return response.json()
         except requests.exceptions.HTTPError as http_err:
-            logger.error(f"HTTP error occurred while calling tool: {http_err} - Response: {response.text}")
+            self.logger.error(f"HTTP error occurred while calling tool: {http_err} - Response: {response.text}")
             raise
         except requests.exceptions.ConnectionError as conn_err:
-            logger.error(f"Connection error occurred while calling tool: {conn_err}")
+            self.logger.error(f"Connection error occurred while calling tool: {conn_err}")
             raise
         except requests.exceptions.Timeout as timeout_err:
-            logger.error(f"Timeout error occurred while calling tool: {timeout_err}")
+            self.logger.error(f"Timeout error occurred while calling tool: {timeout_err}")
             raise
         except requests.exceptions.RequestException as req_err:
-            logger.error(f"An error occurred while calling tool: {req_err}")
+            self.logger.error(f"An error occurred while calling tool: {req_err}")
             raise
         except json.JSONDecodeError as json_err:
-            logger.error(f"Failed to decode JSON response from {execute_url}: {json_err} - Response: {response.text}")
+            self.logger.error(f"Failed to decode JSON response from {execute_url}: {json_err} - Response: {response.text}")
             raise ValueError(f"Invalid JSON response from {execute_url}")
+
+    def check_health(self) -> HealthCheckResult:
+        try:
+            response = requests.get(f"{self.base_url}/health", timeout=5)
+            if response.status_code == 200:
+                return HealthCheckResult(
+                    component="McpNodeBridge",
+                    status=HealthStatus.HEALTHY,
+                    details={"url": self.base_url}
+                )
+            else:
+                return HealthCheckResult(
+                    component="McpNodeBridge",
+                    status=HealthStatus.DEGRADED,
+                    details={
+                        "url": self.base_url,
+                        "status_code": response.status_code
+                    }
+                )
+        except Exception as e:
+            return HealthCheckResult(
+                component="McpNodeBridge",
+                status=HealthStatus.UNHEALTHY,
+                details={
+                    "url": self.base_url,
+                    "error": str(e)
+                }
+            )
 
 if __name__ == '__main__':
     # Example Usage (requires a running MCP Node.js service)

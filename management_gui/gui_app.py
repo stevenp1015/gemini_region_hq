@@ -2,11 +2,12 @@ import os
 import time
 import sys
 import json
+import uuid
 import asyncio
 import urllib.parse
 from nicegui import ui, app, Client
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Ensure the project root is in sys.path to find system_configs.config_manager
 project_root_for_imports = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -79,7 +80,17 @@ app_state = {
     "system_logs": [], # For displaying recent log entries
     "last_broadcast_command": "",
     "chat_messages": [], # To store chat message dictionaries
-    "last_commander_reply_timestamp": 0.0 # Tracks the timestamp of the last fetched reply for STEVEN_GUI_COMMANDER
+    "last_commander_reply_timestamp": 0.0, # Tracks the timestamp of the last fetched reply for STEVEN_GUI_COMMANDER
+    "chat_sessions": {},  # session_id -> {id, type: "individual"|"group", agents: [], created_at, messages: [], status}
+    "active_chat_session_id": None,
+    "collaborative_tasks": {}, # task_id -> {task_id, status, coordinator_id, description, message, subtasks: {}, created_at, last_updated, completed_at, results}
+    "pending_collab_tasks": {}, # temp_task_id -> {"description": ..., "coordinator_id": ..., "submitted_at": ...}
+    "collaborative_tasks_container_ref": None, # Reference to the UI container for collaborative tasks
+    "active_collaborative_task_id": None, # For detailed view
+    # Potentially add keys for LLM config and tool list if fetched globally
+    "llm_config": {"model": "gemini-2.5-pro", "temperature": 0.7, "max_tokens": 8192, "top_p": 0.95, "top_k": 40, "presence_penalty":0, "frequency_penalty":0 }, # Load from config
+    "available_mcp_tools": [], # To be populated
+    "minion_detail_container_ref": {}, # For storing references to minion detail page containers
 }
 
 # --- UI Styling Helpers ---
@@ -182,19 +193,40 @@ def get_formatted_minion_display(minion_id: str) -> str:
 # These are placeholders and need actual implementation based on A2A server API
 async def fetch_a2a_server_status():
     gui_log("Fetching A2A server status...")
+    current_status_for_state = "Unknown" # Default before fetch
     try:
         # Assuming A2A server has a /status or /health endpoint
         response = await asyncio.to_thread(requests.get, f"{A2A_SERVER_URL}/status", timeout=5)
         if response.status_code == 200:
-            app_state["a2a_server_status"] = "Online"
+            current_status_for_state = "Online"
             gui_log("A2A Server is Online.")
         else:
-            app_state["a2a_server_status"] = f"Error: {response.status_code}"
+            current_status_for_state = f"Error: {response.status_code}"
             gui_log(f"A2A Server status error: {response.status_code}", level="ERROR")
     except requests.exceptions.RequestException as e:
-        app_state["a2a_server_status"] = "Offline/Error"
+        current_status_for_state = "Offline/Error"
         gui_log(f"Failed to connect to A2A server: {e}", level="ERROR")
-    status_label.set_text(f"A2A Server: {app_state['a2a_server_status']}")
+        if ui.context.client: # Check if client context is available for ui.notify
+            ui.notify(f"A2A Connection Error: {e}", type='negative', position='top-right')
+    
+    app_state["a2a_server_status"] = current_status_for_state # Update app_state
+
+    # Now update the UI using the reference from app_state
+    status_label_ref = app_state.get('ui_elements', {}).get('a2a_status_label')
+    if status_label_ref:
+        try:
+            status_label_ref.set_text(f"A2A Server: {app_state['a2a_server_status']}")
+        except Exception as e_ui: # Catch errors specific to UI update
+            gui_log(f"Error updating status_label UI element: {e_ui}", level="ERROR")
+            # Attempt to set a fallback text if the label is partially broken but accessible
+            try:
+                # Ensure app_state reflects this UI update issue if it's critical
+                # app_state['a2a_server_status'] = "UI Update Error" # This might overwrite actual server status
+                status_label_ref.set_text(f"A2A Server: UI Error") # Simpler UI error text
+            except Exception as e_ui_fallback:
+                gui_log(f"Failed to set fallback error text on status_label: {e_ui_fallback}", level="ERROR")
+    else:
+        gui_log("a2a_status_label UI element not found in app_state for update.", level="WARNING")
 
 
 async def fetch_registered_minions():
@@ -209,9 +241,15 @@ async def fetch_registered_minions():
             for agent_card in agents_data:
                 agent_id_key = agent_card.get("id")
                 if not agent_id_key:
-                    gui_log(f"Skipping agent card due to missing 'id': {str(agent_card)[:100]}", level="WARNING")
-                    continue
-
+                    agent_id_key = agent_card.get("name")  # Use name as fallback
+                    if agent_id_key:
+                        # Add missing fields expected by GUI
+                        agent_card["id"] = agent_id_key
+                        gui_log(f"Adapted agent: using name '{agent_id_key}' as ID", level="INFO")
+                    else:
+                        gui_log(f"Skipping agent card due to missing 'id' and 'name': {str(agent_card)[:100]}", level="WARNING")
+                        continue
+                
                 # Prioritize "user_facing_name", then "name", then "id"
                 user_facing_name = agent_card.get("user_facing_name")
                 composite_name = agent_card.get("name")
@@ -237,7 +275,7 @@ async def fetch_registered_minions():
                     "personality": agent_card.get("personality_traits", "N/A"), # From agent_card.personality_traits
                     "capabilities": agent_card.get("capabilities", {}), # This should be a dict as per M2M doc
                     "skills": agent_card.get("skills", []), # Fallback, ideally skills are under capabilities
-                    "last_seen": datetime.utcnow().isoformat()
+                    "last_seen": datetime.now(timezone.utc).isoformat()
                 }
             gui_log(f"Fetched {len(app_state['minions'])} minions. GUI state uses 'name_display'.")
             update_minion_display() # This will now use the filter text if minion_filter_input is initialized
@@ -245,6 +283,8 @@ async def fetch_registered_minions():
             gui_log(f"Failed to fetch minions, A2A server status: {response.status_code}", level="ERROR")
     except requests.exceptions.RequestException as e:
         gui_log(f"Error fetching minions: {e}", level="ERROR")
+        if ui.context.client: # Check if client context is available for ui.notify
+            ui.notify(f"Fetch Minions Connection Error: {e}", type='negative', position='top-right')
     except json.JSONDecodeError as e:
         gui_log(f"Error decoding minions response from A2A server: {e}", level="ERROR")
 
@@ -329,6 +369,7 @@ async def broadcast_message_to_all_minions(message_content_str):
 
 
 async def fetch_commander_messages():
+    processed_messages = [] # Initialize here
     gui_log("Fetching commander messages for STEVEN_GUI_COMMANDER...")
     agent_id = "STEVEN_GUI_COMMANDER"
     endpoint = f"{A2A_SERVER_URL}/agents/{agent_id}/messages"
@@ -342,8 +383,7 @@ async def fetch_commander_messages():
                 return
 
             last_known_reply_ts = app_state.get("last_commander_reply_timestamp", 0.0)
-            
-            processed_messages = []
+            # processed_messages is now initialized at the function start
             latest_message_ts_in_batch = last_known_reply_ts
 
             for msg_data in messages_data:
@@ -410,6 +450,8 @@ async def fetch_commander_messages():
             gui_log(f"Failed to fetch messages for {agent_id}, A2A server status: {response.status_code}, Response: {response.text[:100]}", level="ERROR")
     except requests.exceptions.RequestException as e:
         gui_log(f"Error fetching messages for {agent_id}: {e}", level="ERROR")
+        if ui.context.client: # Check if client context is available for ui.notify
+            ui.notify(f"Commander Messages Connection Error: {e}", type='negative', position='top-right')
     except json.JSONDecodeError as e:
         gui_log(f"Error decoding messages JSON for {agent_id}: {e}", level="ERROR")
     except Exception as e:
@@ -466,50 +508,177 @@ async def fetch_commander_messages():
                     ui.notify(f"Message acknowledged by paused minion: {get_formatted_minion_display(minion_id_from_msg)}", type='info')
                     # No status change typically, but could refresh if needed
                     needs_minion_display_update = True # Refresh to ensure consistency
+                elif msg_type == "chat_response":
+                    session_id = parsed_content.get("session_id")
+                    if session_id and session_id in app_state.get("chat_sessions", {}):
+                        session = app_state["chat_sessions"][session_id]
+                        message = {
+                            "sender_id": msg_data.get("sender_id", "UnknownAgent"),
+                            "content": parsed_content.get("message", ""),
+                            "timestamp": msg_timestamp_float, # Ensure msg_timestamp_float is defined based on existing code
+                            "type": "agent_message",
+                            "reasoning": parsed_content.get("reasoning")
+                        }
+                        session["messages"].append(message)
+                        if app_state.get("active_chat_session_id") == session_id and 'chat_container_ref' in app_state: # Assuming chat_container_ref is stored
+                            # This refresh logic will be fully implemented when chat_container_ref is defined.
+                            # For now, ensure the structure is in place.
+                            # Example: app_state['chat_container_ref'].refresh()
+                            pass # Placeholder for actual refresh call
+                        elif not ui.current_path or not ui.current_path.startswith("/chat/"):
+                            # Ensure get_formatted_minion_display is available or define a placeholder if not yet implemented
+                            minion_display_name = app_state.get("minions", {}).get(message['sender_id'], {}).get("name_display", message['sender_id'])
+                            ui.notify(f"New message in chat {session_id} from {minion_display_name}", type="info")
+                elif msg_type == "collaborative_task_acknowledgement":
+                    task_id = parsed_content.get("task_id")
+                    status = parsed_content.get("status")
+                    coordinator_id = parsed_content.get("coordinator_id")
+                    # Assuming 'original_request' might be part of ack or fetched separately if needed for display
+                    description = parsed_content.get("original_request", app_state.get("pending_collab_tasks", {}).get(task_id, {}).get("description", "N/A"))
+
+                    if "collaborative_tasks" not in app_state:
+                        app_state["collaborative_tasks"] = {}
+                    
+                    app_state["collaborative_tasks"][task_id] = {
+                        "task_id": task_id,
+                        "status": status,
+                        "coordinator_id": coordinator_id,
+                        "description": description,
+                        "subtasks": {},
+                        "created_at": time.time(), # Or from message if available
+                        "last_updated": time.time()
+                    }
+                    # Remove from any temporary pending state
+                    if "pending_collab_tasks" in app_state and task_id in app_state["pending_collab_tasks"]:
+                        del app_state["pending_collab_tasks"][task_id]
+
+                    ui.notify(f"Task '{task_id}' acknowledged by {coordinator_id}, status: {status}", type="positive")
+                    # Refresh relevant UI parts (e.g., collaborative task dashboard)
+                    if 'collaborative_tasks_container_ref' in app_state:
+                         # This refresh logic will be fully implemented when collaborative_tasks_container_ref is defined.
+                         # For now, ensure the structure is in place.
+                         # Example: app_state['collaborative_tasks_container_ref'].refresh()
+                         pass # Placeholder for actual refresh call
+                elif msg_type == "debug_state_response":
+                    minion_id = msg_data.get("sender_id")
+                    state_data = parsed_content.get("state_data", {})
+                    # This requires a way to target the specific UI container for debug output
+                    # For now, log or store in app_state, UI update will be part of debug UI task
+                    gui_log(f"Received debug state for {minion_id}: {str(state_data)[:200]}...", level="DEBUG") # Changed to DEBUG
+                    if "debug_info" not in app_state: app_state["debug_info"] = {}
+                    app_state["debug_info"][minion_id] = state_data
+                    # If a specific debug UI element is active and bound, it should update.
+                    # Example: if app_state.get('active_debug_minion_id') == minion_id and 'debug_state_container_ref' in app_state:
+                    # app_state['debug_state_container_ref'].clear()
+                    # with app_state['debug_state_container_ref']:
+                    # ui.json_editor({"content": {"json": state_data}})
+                    # For now, ensure the structure is in place.
+                    pass # Placeholder for actual refresh call
+                elif msg_type == "collaborative_task_status_update":
+                    task_id = parsed_content.get("collaborative_task_id")
+                    subtask_id = parsed_content.get("subtask_id") # Might be null for overall task updates
+                    new_status = parsed_content.get("new_status")
+                    details = parsed_content.get("details", {}) # Could contain subtask_description, assigned_to, error, result snippet
+
+                    if task_id and task_id in app_state.get("collaborative_tasks", {}):
+                        task = app_state["collaborative_tasks"][task_id]
+                        task["last_updated"] = time.time()
+
+                        if subtask_id:
+                            if subtask_id not in task["subtasks"]:
+                                task["subtasks"][subtask_id] = {"id": subtask_id} # Initialize if new
+                            task["subtasks"][subtask_id].update({
+                                "status": new_status,
+                                "description": details.get("description", task["subtasks"][subtask_id].get("description", "N/A")),
+                                "assigned_to": details.get("assigned_to", task["subtasks"][subtask_id].get("assigned_to", "N/A")),
+                                "dependencies": details.get("dependencies", task["subtasks"][subtask_id].get("dependencies", [])),
+                                "success_criteria": details.get("success_criteria", task["subtasks"][subtask_id].get("success_criteria", "N/A")),
+                                "result": details.get("result", task["subtasks"][subtask_id].get("result")), # Store result/error
+                                "error": details.get("error", task["subtasks"][subtask_id].get("error")),
+                                "last_updated": time.time()
+                            })
+                        else: # Overall task status update
+                            task["status"] = new_status
+                            if "message" in details: task["message"] = details["message"]
+                        
+                        # Refresh UI
+                        if 'collaborative_tasks_container_ref' in app_state and app_state['collaborative_tasks_container_ref']:
+                            app_state['collaborative_tasks_container_ref'].refresh()
+                        if app_state.get("active_collaborative_task_id") == task_id and 'collaborative_task_detail_container_ref' in app_state and app_state['collaborative_task_detail_container_ref']:
+                             app_state['collaborative_task_detail_container_ref'].refresh() # Or a more specific update function
+                    else:
+                        gui_log(f"Received status update for unknown collaborative task: {task_id}", level="WARNING")
+                elif msg_type == "collaborative_task_completed":
+                    task_id = parsed_content.get("task_id")
+                    if task_id and task_id in app_state.get("collaborative_tasks", {}):
+                        task = app_state["collaborative_tasks"][task_id]
+                        task["status"] = parsed_content.get("final_status", "completed") # Use final_status or default to completed
+                        task["results"] = parsed_content.get("results", {})
+                        task["last_updated"] = parsed_content.get("completed_at_timestamp", time.time())
+                        task["completed_at"] = parsed_content.get("completed_at_timestamp", time.time())
+                        task["elapsed_seconds"] = parsed_content.get("elapsed_seconds")
+
+                        ui.notify(f"Collaborative task {task_id} completed!", type="positive")
+                        gui_log(f"Collaborative task {task_id} completed. Results: {str(task['results'])[:100]}...", level="INFO")
+
+                        # Refresh relevant UI
+                        if 'collaborative_tasks_container_ref' in app_state and app_state['collaborative_tasks_container_ref']:
+                            app_state['collaborative_tasks_container_ref'].refresh()
+                        
+                        if app_state.get("active_collaborative_task_id") == task_id and \
+                           'collaborative_task_detail_container_ref' in app_state and \
+                           app_state['collaborative_task_detail_container_ref']:
+                            app_state['collaborative_task_detail_container_ref'].refresh()
+                    else:
+                        gui_log(f"Received completion for unknown collaborative task: {task_id}", level="WARNING")
+
 
         if needs_minion_display_update and minion_cards_container:
             update_minion_display()
 
 
-async def send_a2a_message_to_minion(minion_id: str, message_type: str, a2a_payload: dict, notification_verb: str = "send message"):
+async def send_a2a_message_to_minion(client: Client, minion_id: str, message_type: str, a2a_payload: dict, notification_verb: str = "send message"):
     """
     Helper function to send a generic A2A message to a specific minion.
     `a2a_payload` should be the complete message structure expected by the minion.
+    Requires the client context for notifications.
     """
     gui_log(f"Attempting to {notification_verb} to {minion_id} of type {message_type} with payload: {str(a2a_payload)[:200]}")
     endpoint = f"{A2A_SERVER_URL}/agents/{minion_id}/messages"
     
-    # Ensure the payload includes sender_id and timestamp if not already present
-    # These are often added by the A2A client library or server, but good practice for direct calls.
     if "sender_id" not in a2a_payload:
         a2a_payload["sender_id"] = "STEVEN_GUI_COMMANDER"
     if "timestamp" not in a2a_payload:
         a2a_payload["timestamp"] = time.time()
-    if "message_type" not in a2a_payload: # Ensure message_type is in the payload itself if required by minion
+    if "message_type" not in a2a_payload:
         a2a_payload["message_type"] = message_type
 
     try:
         response = await asyncio.to_thread(
             requests.post, endpoint, json=a2a_payload, timeout=10
         )
-        if response.status_code in [200, 201, 202, 204]: # Common success codes
+        if response.status_code in [200, 201, 202, 204]:
             gui_log(f"Successfully initiated {notification_verb} to {minion_id} (type: {message_type}).")
-            ui.notify(f"Request to {notification_verb} to {get_formatted_minion_display(minion_id)} sent.", type='positive')
+            client.notify(f"Request to {notification_verb} to {get_formatted_minion_display(minion_id)} sent.", type='positive')
             return True
         else:
             error_detail = f"status code {response.status_code}"
             try: error_detail = response.json().get("details", error_detail)
             except json.JSONDecodeError: pass
             gui_log(f"Failed to {notification_verb} to {minion_id} (type: {message_type}). Status: {response.status_code}, Resp: {response.text[:100]}", level="ERROR")
-            ui.notify(f"Failed to {notification_verb} to {get_formatted_minion_display(minion_id)}: {error_detail}", type='negative', multi_line=True)
+            client.notify(f"Failed to {notification_verb} to {get_formatted_minion_display(minion_id)}: {error_detail}", type='negative', multi_line=True)
             return False
     except requests.exceptions.RequestException as e:
         gui_log(f"Exception during {notification_verb} to {minion_id} (type: {message_type}): {e}", level="ERROR")
-        ui.notify(f"Error connecting to server to {notification_verb} for {get_formatted_minion_display(minion_id)}: {e}", type='negative', multi_line=True)
+        client.notify(f"Error connecting to server to {notification_verb} for {get_formatted_minion_display(minion_id)}: {e}", type='negative', multi_line=True)
         return False
-    except Exception as e:
-        gui_log(f"Unexpected error during {notification_verb} to {minion_id} (type: {message_type}): {e}", level="CRITICAL")
-        ui.notify(f"Unexpected error trying to {notification_verb} for {get_formatted_minion_display(minion_id)}: {e}", type='negative', multi_line=True)
+    except Exception as e: # This will catch the "slot stack empty" error if it originates here
+        gui_log(f"Unexpected error during {notification_verb} to {minion_id} (type: {message_type}): {e}", level="CRITICAL", exc_info=True)
+        # Try to notify, but this might also fail if the context is truly lost
+        try:
+            client.notify(f"Unexpected error trying to {notification_verb} for {get_formatted_minion_display(minion_id)}: {str(e)[:100]}", type='negative', multi_line=True)
+        except Exception as notify_e:
+            gui_log(f"Failed to send notification even with client context: {notify_e}", level="CRITICAL")
         return False
 
 async def copy_message_to_clipboard(text: str):
@@ -665,23 +834,413 @@ def open_spawn_minion_dialog():
             
             with ui.row().classes('justify-end w-full q-mt-lg'):
                 ui.button("Cancel", on_click=dialog.close, color='grey').props('flat')
-                ui.button("Create Minion", on_click=lambda: (
-                    handle_spawn_minion({
+                async def spawn_and_close_dialog():
+                    await handle_spawn_minion({
                         "user_facing_name": form_data["user_facing_name"].value,
                         "minion_id_prefix": form_data["minion_id_prefix"].value,
                         "llm_config_profile": form_data["llm_config_profile"].value,
                         "capabilities": form_data["capabilities"], # This is already a list
                         "config_overrides_str": form_data["config_overrides_str"].value
-                    }),
+                    })
                     dialog.close()
-                )).props('color=primary')
+                ui.button("Create Minion", on_click=spawn_and_close_dialog).props('color=primary')
 
     dialog.open()
+
+# --- LLM Configuration and MCP Tool Management UI (GUI-3.1, GUI-3.2) ---
+
+# Placeholder functions for MCP Tool actions (as per spec for fetch_available_tools)
+def open_configure_tool_dialog(tool_data: dict):
+    ui.notify(f"Configure action for tool: {tool_data.get('tool_name', 'N/A')} (Not Implemented)")
+    gui_log(f"Placeholder: Configure tool: {tool_data}")
+
+async def toggle_tool_status(tool_data: dict, current_status: str):
+    action = "Enable" if current_status != "Active" else "Disable"
+    ui.notify(f"{action} action for tool: {tool_data.get('tool_name', 'N/A')} (Not Implemented)")
+    gui_log(f"Placeholder: Toggle tool status for: {tool_data}, current: {current_status}")
+    # In a real implementation, this would call an MCP endpoint and then refresh.
+
+async def confirm_delete_tool(tool_data: dict):
+    tool_name = tool_data.get('tool_name', 'N/A')
+    with ui.dialog() as confirm_dialog, ui.card():
+        ui.label(f"Are you sure you want to delete the tool '{tool_name}'?").classes('text-body1')
+        with ui.row().classes('justify-end w-full q-mt-md'):
+            ui.button("Cancel", on_click=confirm_dialog.close, color='grey').props('flat')
+            async def do_delete():
+                ui.notify(f"Delete action for tool: {tool_name} (Not Implemented)")
+                gui_log(f"Placeholder: Delete tool: {tool_data}")
+                confirm_dialog.close()
+                # In a real implementation, this would call an MCP endpoint and then refresh.
+            ui.button("Delete", on_click=do_delete, color='red')
+    confirm_dialog.open()
+
+# GUI-3.1: LLM Configuration Interface
+def create_model_config_ui():
+    with ui.card().classes('w-full q-mb-md'):
+        with ui.card_section():
+            ui.label("LLM Configuration").classes('text-h6')
+        
+        with ui.card_section():
+            available_models = [
+                "gemini-2.5-pro", "gemini-2.5-flash",
+                "gemini-1.5-pro", "gemini-1.5-flash",
+                "claude-3-opus", "claude-3-sonnet", "gpt-4", "gpt-3.5-turbo"
+            ]
+            
+            # Read initial values from the global config object
+            # Fallback to app_state defaults if config keys are missing, or use hardcoded defaults from spec
+            initial_llm_config = app_state.get("llm_config", {})
+
+            model_select = ui.select(
+                available_models,
+                label="Default LLM Model",
+                value=config.get_str("llm.model", initial_llm_config.get("model", "gemini-2.5-pro"))
+            ).props('outlined dense')
+            
+            temperature = ui.number(
+                "Temperature",
+                value=config.get_float("llm.temperature", initial_llm_config.get("temperature", 0.7)),
+                min=0, max=2, step=0.01 # Max 2 for some models
+            ).props('outlined dense')
+            
+            max_tokens = ui.number(
+                "Max Output Tokens",
+                value=config.get_int("llm.max_tokens", initial_llm_config.get("max_tokens", 8192)),
+                min=1, max=32768, format='%.0f'
+            ).props('outlined dense')
+            
+            with ui.expansion("Advanced Parameters").classes('w-full q-mt-md'):
+                top_p = ui.number("Top-p", value=config.get_float("llm.top_p", initial_llm_config.get("top_p", 0.95)), min=0, max=1, step=0.01).props('outlined dense')
+                top_k = ui.number("Top-k", value=config.get_int("llm.top_k", initial_llm_config.get("top_k", 40)), min=0, max=100, format='%.0f').props('outlined dense') # Top-K can be 0 for some
+                presence_penalty = ui.number("Presence Penalty", value=config.get_float("llm.presence_penalty", initial_llm_config.get("presence_penalty", 0.0)), min=-2, max=2, step=0.01).props('outlined dense')
+                frequency_penalty = ui.number("Frequency Penalty", value=config.get_float("llm.frequency_penalty", initial_llm_config.get("frequency_penalty", 0.0)), min=-2, max=2, step=0.01).props('outlined dense')
+            
+            save_llm_button = ui.button("Save LLM Configuration", on_click=None).props('color=primary q-mt-md')
+            save_llm_button.on('click', lambda: save_llm_config({
+                "model": model_select.value,
+                "temperature": temperature.value,
+                "max_tokens": int(max_tokens.value) if max_tokens.value is not None else None,
+                "top_p": top_p.value,
+                "top_k": int(top_k.value) if top_k.value is not None else None,
+                "presence_penalty": presence_penalty.value,
+                "frequency_penalty": frequency_penalty.value
+            }, save_llm_button))
+
+async def save_llm_config(config_data: dict, button_ref: ui.button):
+    original_button_text = button_ref.text
+    button_ref.props("loading=true icon=none")
+    button_ref.text = "Saving..."
+    gui_log(f"Saving LLM configuration: {config_data}", level="INFO")
+    try:
+        # Update app_state (local GUI view of config)
+        current_app_state_llm_config = app_state.get("llm_config", {})
+        current_app_state_llm_config.update(config_data)
+        app_state["llm_config"] = current_app_state_llm_config
+        gui_log(f"Updated app_state['llm_config']: {app_state['llm_config']}", level="DEBUG")
+
+        # Attempt to update system config (in-memory global config object)
+        for key, value in config_data.items():
+            config_path = f"llm.{key}"
+            try:
+                if hasattr(config, 'set_value'):
+                    config.set_value(config_path, value)
+                    gui_log(f"Set in-memory config '{config_path}' to '{value}'", level="DEBUG")
+                elif hasattr(config, '_config_data'):
+                    keys = config_path.split('.')
+                    cfg_ref = config._config_data
+                    for k_idx, k_val in enumerate(keys[:-1]):
+                        cfg_ref = cfg_ref.setdefault(k_val, {})
+                    cfg_ref[keys[-1]] = value
+                    gui_log(f"Set in-memory config (direct) '{config_path}' to '{value}'", level="DEBUG")
+                else:
+                    gui_log(f"Config object does not have 'set_value' or known way to update '{config_path}'. Skipping system config update for this key.", level="WARNING")
+            except Exception as e_cfg_set:
+                gui_log(f"Error trying to set system config for {config_path}: {e_cfg_set}", level="ERROR")
+                # ui.notify(f"Error applying setting for '{config_path}': {e_cfg_set}", type="warning") # Optional: notify per-key error
+        
+        # Update active minions with new settings
+        if app_state.get("minions"):
+            gui_log(f"Sending LLM config update to {len(app_state['minions'])} minions.", level="INFO")
+            # Consider running these in parallel if many minions
+            tasks = [
+                send_a2a_message_to_minion(
+                    minion_id,
+                    "update_llm_config",
+                    {"new_config": config_data},
+                    "update LLM configuration"
+                )
+                for minion_id in app_state["minions"]
+            ]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            success_sends = sum(1 for r in results if r is True) # Assuming send_a2a_message_to_minion returns True on success
+            failed_sends = len(results) - success_sends
+            if failed_sends > 0:
+                gui_log(f"{failed_sends} errors while sending LLM config to minions.", level="WARNING")
+                ui.notify(f"LLM config saved. Errors sending to {failed_sends} minions. Check logs.", type="warning", multi_line=True)
+            elif success_sends > 0 :
+                 ui.notify(f"LLM configuration updated and sent to {success_sends} minions.", type="positive")
+            else: # No minions or all sends failed (but no specific error from gather)
+                 ui.notify("LLM configuration updated. No minions to send to or all sends failed.", type="info")
+
+        else:
+            gui_log("No active minions to send LLM config update to.", level="INFO")
+            ui.notify("LLM configuration updated. No active minions to notify.", type="positive")
+            
+    except Exception as e:
+        gui_log(f"Critical error in save_llm_config: {e}", level="ERROR") # Changed from "Error saving..."
+        ui.notify(f"An unexpected error occurred while saving LLM configuration: {e}", type="negative", multi_line=True)
+    finally:
+        button_ref.props("loading=false")
+        button_ref.text = original_button_text
+        # Re-add icon if it was removed, assuming default button has no icon or managing it if it did.
+        # For "Save LLM Configuration", it likely has no icon by default.
+
+# GUI-3.2: MCP Tool Management Interface
+_tool_management_tools_container_ref = None # To hold the ui.element for refreshing
+
+def create_tool_management_ui():
+    global _tool_management_tools_container_ref
+    with ui.card().classes('w-full q-mb-md'):
+        with ui.card_section():
+            ui.label("MCP Tool Management").classes('text-h6')
+        
+        # Container for tools list - will be populated by fetch_available_tools
+        _tool_management_tools_container_ref = ui.card_section().classes('q-pt-none') # No top padding
+        
+        with ui.card_actions().classes('justify-start q-gutter-sm'): # Actions at the bottom
+            ui.button("Refresh Available Tools", icon="refresh", on_click=lambda: fetch_available_tools(_tool_management_tools_container_ref)).props('outline')
+            ui.button("Add New Tool", icon="add", on_click=open_add_tool_dialog, color="primary")
+    
+    # Initial fetch
+    # Need to ensure _tool_management_tools_container_ref is valid when fetch is called.
+    # ui.timer(0.1, lambda: fetch_available_tools(_tool_management_tools_container_ref), once=True)
+    # Or call directly if the element is already created.
+    # For now, let's assume it's okay to call if the container is created just before.
+    # The spec calls it directly.
+    if _tool_management_tools_container_ref:
+         fetch_available_tools(_tool_management_tools_container_ref) # Call initial fetch
+    else:
+        gui_log("Tool management container not ready for initial fetch.", level="WARNING")
+
+
+async def fetch_available_tools(container: ui.element):
+    if not container:
+        gui_log("fetch_available_tools called with no container.", level="ERROR")
+        ui.notify("UI error: Tool display container not found.", type="negative")
+        return
+    
+    container.clear() # Clear previous content first
+    with container: # Show spinner
+        ui.spinner(size='lg').classes('self-center q-my-md') # Centered spinner
+    
+    gui_log("Fetching available MCP tools...", level="INFO")
+    mcp_base_url = config.get_str('mcp_integration.mcp_node_service_base_url', "http://localhost:7778")
+    list_tools_url = f"{mcp_base_url}/list-tools"
+
+    try:
+        response = await asyncio.to_thread(requests.get, list_tools_url, timeout=10)
+        
+        container.clear() # Clear spinner
+        with container: # Re-enter for content or error message
+            if response.status_code == 200:
+                try:
+                    tools_data = response.json()
+                    app_state['available_mcp_tools'] = tools_data # Update app_state
+                    
+                    if not tools_data:
+                        ui.label("No MCP tools configured or available.").classes('text-italic q-pa-md text-center')
+                        return
+
+                    columns = [
+                        {'name': 'tool_name', 'label': 'Tool Name', 'field': 'tool_name', 'required': True, 'align': 'left', 'sortable': True},
+                        {'name': 'server_name', 'label': 'Server', 'field': 'server_name', 'align': 'left', 'sortable': True},
+                        {'name': 'status', 'label': 'Status', 'field': 'status', 'align': 'center'},
+                        {'name': 'actions', 'label': 'Actions', 'field': 'actions', 'align': 'right'},
+                    ]
+                    
+                    rows = []
+                    for tool in tools_data:
+                        rows.append({
+                            'tool_name': tool.get("tool_name", "Unnamed Tool"),
+                            'server_name': tool.get("server_name", "Unknown Server"),
+                            'status': tool.get("status", "Unknown"),
+                            'id': tool.get("id", tool.get("tool_name")),
+                            '_data': tool
+                        })
+
+                    tool_table = ui.table(columns=columns, rows=rows, row_key='id').classes('w-full')
+                    tool_table.add_slot('body-cell-status', '''
+                        <q-td :props="props">
+                            <q-badge :color="props.row.status === 'Active' ? 'green' : (props.row.status === 'Error' ? 'red' : 'orange')">
+                                {{ props.row.status }}
+                            </q-badge>
+                        </q-td>
+                    ''')
+                    tool_table.add_slot('body-cell-actions', '''
+                        <q-td :props="props" class="q-gutter-xs">
+                            <q-btn flat dense round icon="settings" @click="() => $parent.$emit('customAction', {action: 'configure', row: props.row})" />
+                            <q-btn flat dense round :icon="props.row.status === 'Active' ? 'toggle_on' : 'toggle_off'"
+                                   :color="props.row.status === 'Active' ? 'green' : 'grey'"
+                                    @click="() => $parent.$emit('customAction', {action: 'toggle', row: props.row})" />
+                            <q-btn flat dense round icon="delete" color="red" @click="() => $parent.$emit('customAction', {action: 'delete', row: props.row})" />
+                        </q-td>
+                    ''')
+
+                    def handle_table_action(e):
+                        action_details = e.args
+                        tool_entry = action_details['row']['_data']
+                        if action_details['action'] == 'configure':
+                            open_configure_tool_dialog(tool_entry)
+                        elif action_details['action'] == 'toggle':
+                            toggle_tool_status(tool_entry, tool_entry.get("status", "Unknown"))
+                        elif action_details['action'] == 'delete':
+                            confirm_delete_tool(tool_entry)
+                    
+                    tool_table.on('customAction', handle_table_action)
+
+                except json.JSONDecodeError as e:
+                    error_message = f"Failed to parse tool data: {e}"
+                    gui_log(f"Error in fetch_available_tools (JSONDecodeError): {error_message}", level="ERROR")
+                    ui.label(error_message).classes("text-negative q-pa-md")
+                    ui.notify(f"Error parsing tool data from MCP service: {e}", type="negative", multi_line=True)
+            else:
+                error_message = f"Error fetching tools: {response.status_code} - {response.reason}"
+                gui_log(f"Failed to fetch MCP tools from {list_tools_url}. Status: {response.status_code}, Response: {response.text[:200]}", level="ERROR")
+                ui.label(error_message).classes('text-red q-pa-md')
+                ui.notify(error_message, type="negative", multi_line=True)
+
+    except requests.exceptions.RequestException as e: # Catches ConnectionError, Timeout, etc.
+        container.clear() # Clear spinner if network error occurred
+        with container:
+            error_message = f"Network error fetching tools: {e}"
+            gui_log(f"Error in fetch_available_tools (RequestException): {error_message}", level="ERROR")
+            ui.label(error_message).classes('text-red q-pa-md')
+            ui.notify(f"Could not connect to MCP service: {e}", type="negative", multi_line=True)
+            
+    except Exception as e: # Catch-all for other unexpected errors
+        container.clear() # Clear spinner
+        with container:
+            error_message = f"An unexpected error occurred: {e}"
+            gui_log(f"Error in fetch_available_tools (Exception): {error_message}", level="CRITICAL")
+            ui.label(error_message).classes('text-red q-pa-md')
+            ui.notify(f"An unexpected error occurred while fetching tools: {e}", type="negative", multi_line=True)
+
+def open_add_tool_dialog():
+    with ui.dialog() as dialog, ui.card().classes('min-w-[700px] max-w-[90vw]'):
+        ui.label("Add New MCP Tool").classes('text-h6 q-mb-md')
+        
+        form_data = {}
+
+        with ui.column().classes('q-gutter-md'): # Changed from ui.form()
+            form_data['tool_name'] = ui.input("Tool Name*", placeholder="e.g., WebSearchTool").props('outlined dense required')
+            form_data['server_name'] = ui.input("Server Name*", placeholder="e.g., web_search_mcp_server").props('outlined dense required')
+            form_data['server_url'] = ui.input("Server URL*", placeholder="e.g., http://localhost:3001/mcp").props('outlined dense required type=url')
+            form_data['tool_description'] = ui.textarea("Description", placeholder="Briefly describe what this tool does and its purpose.").props('outlined dense autogrow')
+            
+            with ui.expansion("Authentication (Optional)").classes('w-full'):
+                form_data['auth_required'] = ui.checkbox("Authentication Required")
+                with ui.column().bind_visibility_from(form_data['auth_required'], 'value').classes('q-gutter-sm q-pt-sm'):
+                    form_data['auth_type'] = ui.select(["Basic", "Bearer Token", "API Key"], label="Authentication Type").props('outlined dense')
+                    form_data['auth_key'] = ui.input("Key / Username / Token Name").props('outlined dense')
+                    form_data['auth_value'] = ui.input("Value / Password / API Key Value", password=True).props('outlined dense')
+            
+            with ui.expansion("Parameters Template (JSON, Optional)").classes('w-full'):
+                form_data['params_template'] = ui.textarea(placeholder='Example: {"query": {"type": "string", "description": "Search query"},\n "num_results": {"type": "integer", "default": 5}}').props('outlined dense autogrow')
+                ui.label("Define the JSON schema for tool parameters. This helps in validating inputs and generating forms.").classes('text-caption text-grey-7 q-mt-xs')
+
+            with ui.row().classes('justify-end w-full q-mt-lg q-gutter-sm'):
+                ui.button("Cancel", on_click=dialog.close, color='grey').props('flat')
+                
+                add_tool_button = ui.button("Add Tool").props('color=primary')
+
+                async def submit_form_wrapper(): # Renamed from submit_form to avoid conflict if any
+                    tool_payload = {
+                        "tool_name": form_data['tool_name'].value,
+                        "server_name": form_data['server_name'].value,
+                        "server_url": form_data['server_url'].value,
+                        "description": form_data['tool_description'].value,
+                        "auth_config": None,
+                        "parameters_schema": None
+                    }
+                    if form_data['auth_required'].value:
+                        tool_payload["auth_config"] = {
+                            "type": form_data['auth_type'].value,
+                            "key_or_username": form_data['auth_key'].value,
+                            "value_or_password": form_data['auth_value'].value
+                        }
+                    if form_data['params_template'].value:
+                        try:
+                            tool_payload["parameters_schema"] = json.loads(form_data['params_template'].value)
+                        except json.JSONDecodeError as e:
+                            gui_log(f"Error in open_add_tool_dialog (JSONDecodeError for params): {e}", level="ERROR")
+                            ui.notify(f"Invalid JSON in Parameters Template: {e}", type="negative", multi_line=True)
+                            return
+                    
+                    if not all([tool_payload["tool_name"], tool_payload["server_name"], tool_payload["server_url"]]):
+                        ui.notify("Tool Name, Server Name, and Server URL are required.", type="negative")
+                        return
+
+                    await add_new_tool(tool_payload, add_tool_button) # Pass button_ref
+                    dialog.close()
+                
+                add_tool_button.on('click', submit_form_wrapper)
+    dialog.open()
+
+async def add_new_tool(tool_data: dict, button_ref: ui.button):
+    original_button_text = button_ref.text
+    button_ref.props("loading=true icon=none")
+    button_ref.text = "Adding..."
+    gui_log(f"Attempting to add new MCP tool: {tool_data.get('tool_name')}", level="INFO")
+    
+    mcp_base_url = config.get_str('mcp_integration.mcp_node_service_base_url', "http://localhost:7778")
+    add_tool_url = f"{mcp_base_url}/add-tool"
+
+    try:
+        response = await asyncio.to_thread(requests.post, add_tool_url, json=tool_data, timeout=15)
+        if response.status_code == 200 or response.status_code == 201:
+            ui.notify(f"Tool '{tool_data.get('tool_name')}' added successfully!", type="positive")
+            gui_log(f"Tool '{tool_data.get('tool_name')}' added. Response: {response.text[:200]}", level="INFO")
+            if _tool_management_tools_container_ref:
+                await fetch_available_tools(_tool_management_tools_container_ref)
+            else:
+                gui_log("Tool management container ref not found for refresh after add.", level="WARNING")
+        else:
+            error_detail = f"status {response.status_code}"
+            try:
+                # Try to parse more detailed error from JSON response
+                error_json = response.json()
+                error_detail = error_json.get("detail", error_json.get("error", error_detail))
+            except json.JSONDecodeError:
+                # If response is not JSON, use the raw text or just status code
+                error_detail = f"{error_detail} - {response.text[:100]}"
+            
+            user_friendly_message = f"Failed to add tool '{tool_data.get('tool_name')}': {error_detail}"
+            ui.notify(user_friendly_message, type="negative", multi_line=True)
+            gui_log(f"Error in add_new_tool: {user_friendly_message}. URL: {add_tool_url}, Status: {response.status_code}, Full Response: {response.text[:200]}", level="ERROR")
+    
+    except requests.exceptions.RequestException as e:
+        error_message = f"Network error adding tool: {e}"
+        gui_log(f"Error in add_new_tool (RequestException): {error_message}", level="ERROR")
+        ui.notify(f"Error connecting to MCP service to add tool: {e}", type="negative", multi_line=True)
+    except Exception as e:
+        error_message = f"An unexpected error occurred: {e}"
+        gui_log(f"Error in add_new_tool (Exception): {error_message}", level="CRITICAL")
+        ui.notify(f"An unexpected error occurred while adding tool: {e}", type="negative", multi_line=True)
+    finally:
+        button_ref.props("loading=false")
+        button_ref.text = original_button_text
+        # Assuming the button originally had no icon or its icon should be restored if it had one.
+        # For "Add Tool", it likely has no specific icon by default.
+
+# --- End of LLM Configuration and MCP Tool Management UI ---
+
 
 # --- UI Display Updaters ---
 minion_cards_container = None # Will be defined in create_ui
 chat_log_area = None # Will be defined in main_page for the chat log
 minion_filter_input = None # Will be defined in main_page for filtering
+status_label = None # Will be defined in main_page and used by timers
 
 def update_minion_display():
     if not minion_cards_container:
@@ -794,6 +1353,38 @@ def update_minion_display():
                         ui.label(f"Personality: {data.get('personality', 'N/A')}")
                         ui.label(f"Description: {data.get('description', 'N/A')[:60]}...") # Shorter desc
 
+                        # Task Coordination and Collaborative Task Counts
+                        skills_for_card = data.get('capabilities', {}).get('skills', [])
+                        # Ensure skills_for_card is a list of strings or dicts for 'in' check
+                        has_task_coordination_skill = False
+                        if isinstance(skills_for_card, list):
+                            for skill_item in skills_for_card:
+                                if isinstance(skill_item, str) and skill_item == "task_coordination":
+                                    has_task_coordination_skill = True
+                                    break
+                                elif isinstance(skill_item, dict) and skill_item.get('name') == "task_coordination":
+                                    has_task_coordination_skill = True
+                                    break
+                        
+                        coordinating_tasks_count = 0
+                        participating_tasks_count = 0
+                        active_task_statuses = ['pending', 'in_progress', 'awaiting_subtask_completion', 'decomposing', 'awaiting_coordination'] # Define active statuses
+
+                        for task_iter_id, task_iter_data in app_state.get("collaborative_tasks", {}).items():
+                            task_status_lower = task_iter_data.get('status', '').lower()
+                            if task_iter_data.get('coordinator_id') == agent_id_key and task_status_lower in active_task_statuses:
+                                coordinating_tasks_count += 1
+                            
+                            for subtask_iter_id, subtask_iter_data in task_iter_data.get('subtasks', {}).items():
+                                subtask_status_lower = subtask_iter_data.get('status', '').lower()
+                                if subtask_iter_data.get('assigned_to') == agent_id_key and subtask_status_lower in active_task_statuses:
+                                    participating_tasks_count += 1
+                                    break # Count minion once per parent task if participating in any subtask
+
+                        ui.label(f"Coordinator Skill: {'Yes' if has_task_coordination_skill else 'No'}").classes('text-caption')
+                        ui.label(f"Coordinating Tasks (Active): {coordinating_tasks_count}").classes('text-caption')
+                        ui.label(f"Participating Tasks (Active): {participating_tasks_count}").classes('text-caption')
+
                         # Display Capabilities
                         capabilities = data.get('capabilities', {})
                         if capabilities:
@@ -878,8 +1469,15 @@ def update_minion_display():
                                 ui.button("Send Msg", on_click=lambda mid=agent_id_key: open_send_message_to_paused_dialog(mid), color='blue').props('dense')
                             elif current_status in ["Pausing...", "Resuming..."]:
                                 ui.spinner(size='sm').classes('q-ml-md') # Show a spinner if transitioning
+                        
+                        # Minion Actions Row (Details, Personality, Debug)
+                        with ui.row().classes('q-gutter-sm q-mt-sm w-full justify-start'):
+                            ui.button("Chat", icon="chat", on_click=lambda mid=agent_id_key: start_chat_session(session_type="individual", agent_ids_input=mid)).props('dense outline color=primary')
+                            ui.button("View Details", on_click=lambda mid=agent_id_key: show_minion_details(mid)).props('dense outline')
+                            ui.button("Personality", icon="face_retouching_natural", on_click=lambda mid=agent_id_key: open_personality_dialog(mid)).props('dense outline')
+                            ui.button("Debug", icon="bug_report", on_click=lambda mid=agent_id_key: show_minion_details(mid)).props('dense outline') # Debug also navigates to detail page
 
-    gui_log("Minion display updated with process control buttons.")
+    gui_log("Minion display updated with process control, chat, and action buttons.")
 
 
 # --- Process Control Action Handlers (Placeholder implementations) ---
@@ -949,6 +1547,1274 @@ def open_rename_dialog(minion_id: str, current_name: str):
             ))
     dialog.open()
 
+# --- Minion Personality Customization UI (GUI-3.3) ---
+
+async def update_minion_personality(minion_id: str, personality_traits: str, button_ref: ui.button):
+    """
+    Updates the specified minion's personality traits via A2A message.
+    Manages button loading state.
+    """
+    original_button_text = button_ref.text
+    button_ref.props("loading=true icon=none")
+    button_ref.text = "Applying..."
+    gui_log(f"Attempting to update personality for minion {minion_id} to: '{personality_traits[:100]}...'")
+    minion_display_name = get_formatted_minion_display(minion_id)
+
+    payload = {
+        "message_type": "update_personality",
+        "new_personality_traits": personality_traits
+    }
+
+    try:
+        success = await send_a2a_message_to_minion(
+            minion_id,
+            "update_personality",
+            payload,
+            notification_verb=f"update personality for {minion_display_name}"
+        )
+
+        if success:
+            if minion_id in app_state.get("minions", {}):
+                app_state["minions"][minion_id]["personality"] = personality_traits
+                gui_log(f"Successfully updated personality in app_state for {minion_id}.")
+                if minion_cards_container:
+                    update_minion_display()
+                else:
+                    gui_log("minion_cards_container not defined, skipping display update.", level="WARNING")
+                ui.notify(f"Personality for {minion_display_name} updated successfully.", type='positive')
+            else:
+                gui_log(f"Minion {minion_id} not found in app_state after successful A2A, cannot update local state.", level="WARNING")
+                ui.notify(f"Personality update sent for {minion_display_name}, but local display might be out of sync.", type='warning')
+        # else:
+            # send_a2a_message_to_minion already handles negative notification for send failure.
+            # gui_log(f"Failed to send personality update request for {minion_id} (send_a2a_message_to_minion returned False).", level="ERROR")
+            # ui.notify(f"Failed to apply personality changes for {minion_display_name}.", type='negative') # This would be redundant
+    except Exception as e:
+        gui_log(f"Error in update_minion_personality for {minion_id}: {e}", level="ERROR")
+        ui.notify(f"An unexpected error occurred while updating personality for {minion_display_name}: {e}", type="negative", multi_line=True)
+    finally:
+        button_ref.props("loading=false")
+        button_ref.text = original_button_text
+        # Assuming no icon was present on this button initially.
+
+def open_personality_dialog(minion_id: str):
+    """
+    Opens a dialog to customize the personality of a given minion.
+    """
+    minion_data = app_state.get("minions", {}).get(minion_id)
+    if not minion_data:
+        ui.notify(f"Minion {minion_id} not found.", type='negative')
+        gui_log(f"open_personality_dialog: Minion {minion_id} not found in app_state.", level="ERROR")
+        return
+
+    minion_name = get_formatted_minion_display(minion_id)
+    current_personality = minion_data.get("personality", "")
+
+    with ui.dialog() as dialog, ui.card().classes('min-w-[600px]'):
+        ui.label(f"Customize {minion_name} Personality").classes('text-h6 q-mb-md')
+
+        personality_textarea = ui.textarea(
+            "Personality Traits",
+            value=current_personality,
+            placeholder="Describe the minion's personality traits, e.g., 'Analytical, cautious, detail-oriented'"
+        ).props('outlined dense autogrow')
+
+        ui.label("Personality Templates (Examples):").classes('text-caption q-mt-sm')
+        with ui.row().classes('q-gutter-sm q-mb-md'):
+            templates = {
+                "Analytical": "Analytical, logical, data-driven, prefers facts over opinions.",
+                "Creative": "Creative, imaginative, thinks outside the box, enjoys brainstorming.",
+                "Supportive": "Supportive, empathetic, patient, good listener, team player.",
+                "Direct": "Direct, concise, to-the-point, values efficiency."
+            }
+            for name, text in templates.items():
+                ui.button(name, on_click=lambda t=text: personality_textarea.set_value(t)).props('outline dense')
+        
+        with ui.expansion("Advanced Personality Settings (Placeholders)").classes('w-full q-mt-md'):
+            with ui.card_section():
+                ui.slider(min=0, max=10, value=5, step=1).props('label label-always').bind_value(app_state, f"temp_verbosity_{minion_id}")
+                ui.label("Verbosity").classes('q-ml-sm')
+                ui.slider(min=0, max=10, value=7, step=1).props('label label-always').bind_value(app_state, f"temp_creativity_{minion_id}")
+                ui.label("Creativity").classes('q-ml-sm')
+                ui.slider(min=0, max=10, value=3, step=1).props('label label-always').bind_value(app_state, f"temp_formality_{minion_id}")
+                ui.label("Formality").classes('q-ml-sm')
+                ui.label("Note: Advanced settings are placeholders and not yet functional.").classes('text-caption text-orange')
+
+
+        with ui.row().classes('justify-end w-full q-mt-lg'):
+            ui.button("Cancel", on_click=dialog.close, color='grey').props('flat')
+            apply_button = ui.button("Apply Personality").props('color=primary')
+            apply_button.on('click', lambda: (
+                update_minion_personality(minion_id, personality_textarea.value, apply_button),
+                dialog.close() # Consider closing dialog only on success or add explicit close button
+            ))
+
+    dialog.open()
+
+# --- Minion Debugging Interface UI (GUI-3.4) ---
+
+async def fetch_minion_debug_data(minion_id: str, data_type: str, container: ui.element):
+    """
+    Generic helper to request debug data from a minion and update a UI container.
+    `data_type` corresponds to the A2A message (e.g., 'debug_get_state', 'debug_get_conversation_history').
+    Manages loading state within the container.
+    """
+    minion_name = get_formatted_minion_display(minion_id)
+    data_type_display = data_type.replace('debug_get_', '').replace('_', ' ')
+    gui_log(f"Fetching '{data_type_display}' for minion {minion_name} ({minion_id}).")
+    
+    container.clear()
+    with container:
+        ui.spinner(size='md').classes('self-center')
+        ui.label(f"Fetching {data_type_display}...").classes('text-italic')
+
+    payload = {
+        "message_type": data_type,
+    }
+    
+    success = False # Initialize success flag
+    try:
+        success = await send_a2a_message_to_minion(
+            minion_id,
+            data_type,
+            payload,
+            notification_verb=f"request {data_type_display} for {minion_name}"
+        )
+    except Exception as e:
+        gui_log(f"Error during A2A call in fetch_minion_debug_data for {data_type} of {minion_id}: {e}", level="ERROR")
+        ui.notify(f"An error occurred while requesting {data_type_display} for {minion_name}: {e}", type="negative", multi_line=True)
+        # Success remains False
+    finally:
+        container.clear() # Clear spinner and "Fetching..." message
+        with container:
+            if success:
+                ui.label(f"Request for {data_type_display} sent. Waiting for response...").classes('text-green')
+                # The actual data display will rely on app_state being updated by the A2A response handler
+                # and the tab's content area being refreshed or observing app_state.
+                # This part remains as a placeholder for when data arrives.
+                debug_key_map = {
+                    "debug_get_state": "state_data",
+                    "debug_get_conversation_history": "conversation_history",
+                    "debug_get_task_queue": "task_queue",
+                    "debug_get_logs": "logs",
+                    "debug_get_performance_metrics": "performance_metrics"
+                }
+                data_key = debug_key_map.get(data_type)
+
+                # Check if data is already available (e.g., from a very fast response or previous fetch)
+                if data_key and minion_id in app_state.get("debug_info", {}) and data_key in app_state["debug_info"][minion_id]:
+                    retrieved_data = app_state["debug_info"][minion_id][data_key]
+                    if isinstance(retrieved_data, (dict, list)):
+                        ui.json_editor({"content": {"json": retrieved_data}}).props('readonly')
+                    else:
+                        ui.code(str(retrieved_data)) # Use ui.code for potentially long string data
+                else:
+                    ui.label(f"Data for '{data_key or data_type_display}' will appear here when received and processed.").classes('text-italic')
+                    gui_log(f"No data yet in app_state for {minion_id} -> {data_key} after fetch attempt.", level="DEBUG")
+            else:
+                # If send_a2a_message_to_minion returned False, it would have shown a notification.
+                # If an exception occurred in the try block, that also showed a notification.
+                # So, this specific message might be redundant if send_a2a_message_to_minion is robust.
+                # However, it's a good fallback if the request initiation itself failed silently before send_a2a.
+                ui.label(f"Failed to send request for {data_type_display}. Check logs for details.").classes('text-red')
+                # ui.notify is handled by send_a2a_message_to_minion or the except block here.
+
+# Specific fetch functions calling the generic helper
+async def fetch_minion_state(minion_id: str, container: ui.element):
+    await fetch_minion_debug_data(minion_id, "debug_get_state", container)
+
+async def fetch_minion_conversation(minion_id: str, container: ui.element):
+    await fetch_minion_debug_data(minion_id, "debug_get_conversation_history", container)
+
+async def fetch_minion_task_queue(minion_id: str, container: ui.element):
+    await fetch_minion_debug_data(minion_id, "debug_get_task_queue", container)
+
+async def fetch_minion_logs(minion_id: str, container: ui.element):
+    # For logs, we might want to specify parameters like 'lines' or 'since_timestamp' in payload
+    await fetch_minion_debug_data(minion_id, "debug_get_logs", container)
+
+async def fetch_minion_performance(minion_id: str, container: ui.element):
+    await fetch_minion_debug_data(minion_id, "debug_get_performance_metrics", container)
+
+
+def create_debug_console_ui(minion_id: str):
+    """
+    Creates the UI for the minion debug console.
+    This function itself doesn't return a NiceGUI element directly to be embedded,
+    but rather it would typically be called to populate a specific part of a page or dialog.
+    For this task, we define it. Its integration into a minion detail page is GUI-3.5.
+    Let's assume this function is called within a context where it can add UI elements.
+    For example, it might be called inside a `with ui.card():` block on a minion detail page.
+    """
+    minion_data = app_state.get("minions", {}).get(minion_id)
+    if not minion_data:
+        ui.label(f"Minion {minion_id} not found for debug console.").classes('text-red')
+        gui_log(f"create_debug_console_ui: Minion {minion_id} not found.", level="ERROR")
+        return
+
+    minion_name = get_formatted_minion_display(minion_id)
+    
+    # This function would be called to render into an existing container,
+    # or it could return a ui.element to be added elsewhere.
+    # For now, let's assume it adds to the current UI context.
+
+    with ui.card().classes('w-full q-mt-md'):
+        with ui.card_section():
+            ui.label(f"Debug Console: {minion_name}").classes('text-h6')
+
+        with ui.tabs().props('vertical').classes('w-full') as tabs:
+            tab_internal_state = ui.tab("Internal State", icon="data_object")
+            tab_conversation_history = ui.tab("Conversation History", icon="history")
+            tab_task_queue = ui.tab("Task Queue", icon="queue")
+            tab_log_viewer = ui.tab("Log Viewer", icon="article")
+            tab_performance_metrics = ui.tab("Performance", icon="speed")
+
+        with ui.tab_panels(tabs, value=tab_internal_state).props('vertical').classes('w-full'):
+            with ui.tab_panel(tab_internal_state):
+                ui.label("Minion Internal State").classes('text-subtitle1 q-mb-sm')
+                state_container = ui.column().classes('w-full q-gutter-y-sm')
+                ui.button("Fetch/Refresh State", icon="refresh", on_click=lambda: fetch_minion_state(minion_id, state_container)).props('outline dense')
+                with state_container:
+                     ui.label("Click 'Fetch/Refresh State' to load data.").classes('text-italic')
+            
+            with ui.tab_panel(tab_conversation_history):
+                ui.label("Minion Conversation History").classes('text-subtitle1 q-mb-sm')
+                conversation_container = ui.column().classes('w-full q-gutter-y-sm')
+                ui.button("Fetch/Refresh History", icon="refresh", on_click=lambda: fetch_minion_conversation(minion_id, conversation_container)).props('outline dense')
+                with conversation_container:
+                    ui.label("Click 'Fetch/Refresh History' to load data.").classes('text-italic')
+
+            with ui.tab_panel(tab_task_queue):
+                ui.label("Minion Task Queue").classes('text-subtitle1 q-mb-sm')
+                task_queue_container = ui.column().classes('w-full q-gutter-y-sm')
+                ui.button("Fetch/Refresh Queue", icon="refresh", on_click=lambda: fetch_minion_task_queue(minion_id, task_queue_container)).props('outline dense')
+                with task_queue_container:
+                    ui.label("Click 'Fetch/Refresh Queue' to load data.").classes('text-italic')
+
+            with ui.tab_panel(tab_log_viewer):
+                ui.label("Minion Log Viewer").classes('text-subtitle1 q-mb-sm')
+                logs_container = ui.column().classes('w-full q-gutter-y-sm')
+                ui.button("Fetch/Refresh Logs", icon="refresh", on_click=lambda: fetch_minion_logs(minion_id, logs_container)).props('outline dense')
+                with logs_container:
+                    ui.label("Click 'Fetch/Refresh Logs' to load data.").classes('text-italic')
+
+            with ui.tab_panel(tab_performance_metrics):
+                ui.label("Minion Performance Metrics").classes('text-subtitle1 q-mb-sm')
+                performance_container = ui.column().classes('w-full q-gutter-y-sm')
+                ui.button("Fetch/Refresh Metrics", icon="refresh", on_click=lambda: fetch_minion_performance(minion_id, performance_container)).props('outline dense')
+                with performance_container:
+                    ui.label("Click 'Fetch/Refresh Metrics' to load data.").classes('text-italic')
+    
+    gui_log(f"Debug console UI structure defined for {minion_id}. To be integrated in GUI-3.5.")
+
+# --- End of Minion Debugging Interface UI ---
+
+
+# --- Chat Session Creation UI and Logic (Subtask GUI-1.3) ---
+
+async def start_chat_session(session_type: str, agent_ids_input: any):
+    """
+    Handles the logic when "Start Chat Session" is clicked.
+    Validates inputs, creates a session_id, updates app_state,
+    optionally sends an A2A message, and navigates to the chat page.
+    """
+    gui_log(f"Attempting to start chat session. Type: {session_type}, Agent IDs input: {agent_ids_input}", level="INFO")
+
+    agent_ids = []
+    if session_type == "individual":
+        if agent_ids_input and isinstance(agent_ids_input, str):
+            agent_ids = [agent_ids_input]
+        else:
+            ui.notify("Please select an agent for individual chat.", type="negative")
+            gui_log("Individual chat start failed: No agent selected.", level="WARNING")
+            return
+    elif session_type == "group":
+        if agent_ids_input and isinstance(agent_ids_input, list) and len(agent_ids_input) > 0:
+            agent_ids = agent_ids_input
+        else:
+            ui.notify("Please select at least one agent for group chat.", type="negative")
+            gui_log("Group chat start failed: No agents selected.", level="WARNING")
+            return
+    else:
+        ui.notify("Invalid session type selected.", type="negative")
+        gui_log(f"Chat start failed: Invalid session type '{session_type}'.", level="ERROR")
+        return
+
+    if not agent_ids: # Should be caught by above checks, but as a safeguard
+        ui.notify("No agents selected for the chat session.", type="negative")
+        gui_log("Chat start failed: Agent ID list is empty after processing input.", level="ERROR")
+        return
+
+    session_id = uuid.uuid4().hex[:8]
+    created_at_ts = time.time()
+
+    new_session = {
+        "id": session_id,
+        "type": session_type,
+        "agents": agent_ids, # Normalized list of agent IDs
+        "created_at": created_at_ts,
+        "messages": [],
+        "status": "active"
+    }
+
+    if "chat_sessions" not in app_state:
+        app_state["chat_sessions"] = {}
+    app_state["chat_sessions"][session_id] = new_session
+    app_state["active_chat_session_id"] = session_id
+
+    gui_log(f"Chat session {session_id} created. Type: {session_type}, Agents: {agent_ids}. Stored in app_state.", level="INFO")
+
+    # Optionally send a chat_session_start A2A message for individual chats
+    if session_type == "individual" and agent_ids:
+        primary_agent_id = agent_ids[0]
+        payload = {
+            "session_id": session_id,
+            "initiator_id": "STEVEN_GUI_COMMANDER",
+            "participants": agent_ids, # Full list of participants
+            "session_type": "individual", # Explicitly state type
+            "message_type": "chat_session_start" # Ensure this is part of the payload for minion processing
+            # timestamp will be added by send_a2a_message_to_minion
+        }
+        gui_log(f"Sending chat_session_start A2A to {primary_agent_id} for session {session_id}.", level="DEBUG")
+        # The message_type argument to send_a2a_message_to_minion is "chat_session_start"
+        # The payload also contains "message_type": "chat_session_start" for clarity if minion inspects payload directly.
+        await send_a2a_message_to_minion(
+            minion_id=primary_agent_id,
+            message_type="chat_session_start", # This is the A2A message type for routing/handling
+            a2a_payload=payload,
+            notification_verb="initiate chat session"
+        )
+    elif session_type == "group":
+        # For group chats, a broadcast or individual messages to all participants might be considered.
+        # For now, as per plan, only individual chat sends an initial A2A.
+        # Future: Could send chat_session_start to all group members.
+        gui_log(f"Group chat session {session_id} created. No initial A2A message sent by default for group type.", level="INFO")
+
+
+    ui.notify(f"Chat session '{session_id}' with {', '.join(get_formatted_minion_display(aid) for aid in agent_ids)} started!", type="positive")
+    ui.navigate.to(f"/chat/{session_id}")
+    gui_log(f"Navigating to /chat/{session_id}", level="INFO")
+
+
+def create_chat_session_ui():
+    """
+    Creates the UI elements for initiating a new chat session.
+    Returns a ui.card component.
+    """
+    chat_params = {
+        "type": "individual",  # Default selection
+        "selected_agent_id": None,
+        "selected_group_agents": []
+    }
+    
+    # Container for the dynamic agent selection UI
+    agent_selection_area = ui.column().classes('w-full q-mt-sm')
+
+    def update_agent_selector_ui():
+        agent_selection_area.clear()
+        chat_params["selected_agent_id"] = None # Reset individual selection
+        chat_params["selected_group_agents"] = [] # Reset group selection
+
+        with agent_selection_area:
+            minions = app_state.get("minions", {})
+            if not minions:
+                ui.label("No agents available for chat.").classes("text-italic text-negative")
+                return
+
+            if chat_params["type"] == "individual":
+                options = {mid: get_formatted_minion_display(mid) for mid in minions.keys()}
+                if not options:
+                     ui.label("No agents available for individual chat.").classes("text-italic")
+                else:
+                    select_element = ui.select(
+                        options=options,
+                        label="Select Agent",
+                        with_input=True,
+                        on_change=lambda e: chat_params.update({"selected_agent_id": e.value})
+                    ).props("outlined dense")
+                    # Pre-select if there's a previous value and it's still valid
+                    if chat_params["selected_agent_id"] in options:
+                        select_element.set_value(chat_params["selected_agent_id"])
+                    elif options: # Select the first available if no prior valid selection
+                        first_agent_id = list(options.keys())[0]
+                        # chat_params["selected_agent_id"] = first_agent_id # Auto-select first
+                        # select_element.set_value(first_agent_id) # And update UI
+                        # Decided against auto-selecting to force user choice.
+
+            elif chat_params["type"] == "group":
+                ui.label("Select Agents for Group Chat:").classes("text-caption")
+                if not minions:
+                    ui.label("No agents available for group chat.").classes("text-italic")
+                else:
+                    with ui.column().classes('q-gutter-xs'): # To space out checkboxes
+                        for agent_id, agent_data in minions.items():
+                            display_name = get_formatted_minion_display(agent_id)
+                            checkbox = ui.checkbox(display_name)
+                            # Use a more robust way to handle checkbox changes for list management
+                            def on_checkbox_change(event, current_agent_id=agent_id):
+                                if event.value: # Checked
+                                    if current_agent_id not in chat_params["selected_group_agents"]:
+                                        chat_params["selected_group_agents"].append(current_agent_id)
+                                else: # Unchecked
+                                    if current_agent_id in chat_params["selected_group_agents"]:
+                                        chat_params["selected_group_agents"].remove(current_agent_id)
+                                gui_log(f"Group chat selection: {chat_params['selected_group_agents']}", level="DEBUG")
+
+                            checkbox.on('update:model-value', on_checkbox_change) # Use 'update:model-value' for NiceGUI checkboxes
+                            # Pre-check if agent was previously selected
+                            if agent_id in chat_params["selected_group_agents"]:
+                                checkbox.set_value(True)
+        gui_log(f"Agent selector UI updated for type: {chat_params['type']}", level="DEBUG")
+
+
+    with ui.card().classes('w-full') as card_element:
+        with ui.card_section():
+            ui.label("Agent Communication").classes('text-h6')
+
+        with ui.card_section():
+            ui.label("Chat Type:").classes("q-mb-xs")
+            chat_type_radio = ui.radio(
+                options={"individual": "Individual Chat", "group": "Group Chat"},
+                value=chat_params["type"],
+                on_change=lambda e: (chat_params.update({"type": e.value}), update_agent_selector_ui())
+            ).props("inline")
+
+            # Initial call to populate the agent selector based on default chat_params["type"]
+            update_agent_selector_ui()
+        
+        # The agent_selection_area is populated by update_agent_selector_ui
+        # It needs to be added to the card layout here.
+        # It's already a child of the card implicitly if defined within its context,
+        # but explicit add ensures it's part of this section if needed.
+        # However, since update_agent_selector_ui clears and rebuilds it,
+        # it should be fine as long as agent_selection_area itself is part of the card.
+        # Let's ensure agent_selection_area is directly under the card section where it's logical.
+        # The current structure has it defined before the card, then populated.
+        # It should be defined *inside* the card context where it will live.
+        # Corrected: agent_selection_area is defined outside, then added to the card.
+        # This is fine, NiceGUI attaches it.
+
+        with ui.card_actions().classes('justify-end'):
+            async def start_action():
+                agent_ids_to_pass = None
+                if chat_params["type"] == "individual":
+                    if chat_params["selected_agent_id"]:
+                        agent_ids_to_pass = chat_params["selected_agent_id"] # Single ID for individual
+                    else:
+                        ui.notify("Please select an agent for individual chat.", type="warning")
+                        return
+                elif chat_params["type"] == "group":
+                    if chat_params["selected_group_agents"]:
+                        agent_ids_to_pass = list(chat_params["selected_group_agents"]) # List of IDs for group
+                    else:
+                        ui.notify("Please select at least one agent for group chat.", type="warning")
+                        return
+                
+                if agent_ids_to_pass is not None:
+                    await start_chat_session(chat_params["type"], agent_ids_to_pass)
+                else:
+                    # This case should ideally be caught by the specific checks above
+                    ui.notify("Agent selection is incomplete.", type="negative")
+            
+            ui.button("Start Chat Session", on_click=start_action).props('color=primary')
+            
+    return card_element
+
+# --- End of Chat Session Creation UI and Logic ---
+# --- Chat Interface Page (Subtask GUI-1.4) ---
+
+def update_chat_display(container: ui.element, session_id: str, show_reasoning: bool = False):
+    """
+    Renders messages within the provided container for a given chat session.
+    Clears the container and re-populates it with messages.
+    Handles different styling for human vs. agent messages and optional reasoning display.
+    """
+    gui_log(f"Updating chat display for session {session_id}, show_reasoning: {show_reasoning}", level="DEBUG")
+    try:
+        session = app_state["chat_sessions"].get(session_id)
+        if not session:
+            gui_log(f"Session {session_id} not found in update_chat_display.", level="ERROR")
+            with container:
+                ui.label("Chat session not found.").classes("text-negative")
+            return
+
+        session_messages = session.get("messages", [])
+        container.clear()
+
+        with container:
+            if not session_messages:
+                ui.label("No messages in this chat yet. Send one to start!").classes("text-italic q-pa-md text-center w-full")
+            else:
+                # Ensure messages are sorted by timestamp if not already
+                # Assuming timestamps are float/int Unix timestamps
+                sorted_messages = sorted(session_messages, key=lambda m: m.get("timestamp", 0.0))
+
+                for msg in sorted_messages:
+                    sender_id = msg.get("sender_id", "Unknown")
+                    is_human = sender_id == "STEVEN_GUI_COMMANDER"
+                    
+                    style_info = get_sender_style(sender_id) # Reuse existing style helper
+                    avatar_svg = generate_circular_avatar_svg(
+                        letter=style_info['avatar_letter'],
+                        avatar_bg_color_name=style_info['avatar_color_name']
+                    )
+                    
+                    timestamp_val = msg.get("timestamp")
+                    timestamp_str = ""
+                    if timestamp_val:
+                        try:
+                            timestamp_str = datetime.fromtimestamp(float(timestamp_val)).strftime('%H:%M:%S')
+                        except (ValueError, TypeError) as e:
+                            gui_log(f"Error formatting timestamp '{timestamp_val}': {e}", level="WARNING")
+                            timestamp_str = "Invalid Time"
+                    
+                    # Use ui.row to control alignment
+                    with ui.row().classes('w-full my-1').classes('justify-end' if is_human else 'justify-start'):
+                        # Max width for chat message for better readability
+                        with ui.chat_message(
+                            name=style_info['sender_display_name'],
+                            stamp=timestamp_str,
+                            avatar=avatar_svg,
+                            sent=is_human,
+                            text=[msg.get("content", "")] # Main content as list item
+                        ).classes(style_info['bubble_class']).classes('max-w-[70%]') as chat_bubble:
+                            if show_reasoning and msg.get("reasoning"):
+                                with ui.element('div').classes('q-mt-xs'): # Reasoning container
+                                    ui.label("Reasoning:").classes('text-xs text-grey-7 font-bold')
+                                    # Using ui.markdown for potentially complex reasoning strings
+                                    ui.markdown(f"```text\n{msg['reasoning']}\n```").classes('text-xs bg-grey-2 q-pa-xs rounded-borders')
+        
+        # Auto-scroll to the bottom
+        # Using a more reliable method if possible, or a slight delay if needed for elements to render
+        async def delayed_scroll():
+            await asyncio.sleep(0.1) # Small delay to ensure elements are rendered
+            container.run_method('scrollIntoView', {'block': 'end', 'behavior': 'smooth'})
+        
+        asyncio.create_task(delayed_scroll())
+        gui_log(f"Chat display for session {session_id} updated with {len(session_messages)} messages.", level="DEBUG")
+
+    except Exception as e:
+        gui_log(f"Error in update_chat_display for session {session_id}: {e}", level="CRITICAL")
+        if container:
+            container.clear()
+            with container:
+                ui.label(f"Error loading chat: {e}").classes("text-negative")
+
+async def send_chat_message(client: Client, session_id: str, message_text_area: ui.textarea):
+    """
+    Handles sending a message from the GUI.
+    Appends the message to the local session and sends it to relevant agents via A2A.
+    Requires client context.
+    """
+    gui_log(f"send_chat_message called for session {session_id}. Input area: {message_text_area}") # LOG 1
+    if not message_text_area:
+        gui_log(f"send_chat_message: message_text_area is None for session {session_id}", level="ERROR")
+        client.notify("Error: Chat input area is not available.", type="negative")
+        return
+
+    try:
+        message_text = message_text_area.value
+        gui_log(f"send_chat_message: message_text is '{message_text}' for session {session_id}") # LOG 2
+
+        if not message_text or not message_text.strip():
+            gui_log(f"send_chat_message: Message is empty or whitespace for session {session_id}.", level="WARNING")
+            client.notify("Message cannot be empty.", type="warning")
+            return # Important: return here so finally doesn't clear if only whitespace
+
+        gui_log(f"Sending chat message for session {session_id}: '{message_text[:50]}...'", level="INFO") # LOG 3
+        
+        session = app_state["chat_sessions"].get(session_id)
+        if not session:
+            gui_log(f"send_chat_message: Session {session_id} not found.", level="ERROR")
+            client.notify("Chat session not found. Cannot send message.", type="negative")
+            return
+
+        gui_log(f"send_chat_message: Session found. Appending human message. Session: {session_id}") # LOG 4
+        current_timestamp = time.time()
+        human_message = {
+            "sender_id": "STEVEN_GUI_COMMANDER",
+            "content": message_text.strip(),
+            "timestamp": current_timestamp,
+            "type": "human_message"
+        }
+        session["messages"].append(human_message)
+
+        is_group_chat = session.get("type") == "group"
+        participants = list(session.get("agents", []))
+        a2a_payload_template = {
+            "session_id": session_id,
+            "message_text": message_text.strip(),
+            "is_group_chat": is_group_chat,
+            "participants": participants,
+            "sender_id": "STEVEN_GUI_COMMANDER",
+            "timestamp": current_timestamp,
+            "message_type": "chat_message"
+        }
+
+        agents_to_message = session.get("agents", [])
+        if not agents_to_message:
+            gui_log(f"send_chat_message: No agents in session {session_id} to send to.", level="WARNING")
+        
+        gui_log(f"send_chat_message: About to loop through agents to send A2A. Agents: {agents_to_message}. Session: {session_id}") # LOG 5
+        for agent_id in agents_to_message:
+            gui_log(f"Sending A2A 'chat_message' to agent {agent_id} for session {session_id}.", level="DEBUG")
+            await send_a2a_message_to_minion(
+                client=client, # Pass client
+                minion_id=agent_id,
+                message_type="chat_message",
+                a2a_payload=a2a_payload_template.copy(),
+                notification_verb="send chat message"
+            )
+            await asyncio.sleep(0.05)
+
+        gui_log(f"send_chat_message: A2A sending loop complete. Updating display. Session: {session_id}") # LOG 6
+        if 'chat_container_ref' in app_state and app_state['chat_container_ref'] and app_state.get("active_chat_session_id") == session_id:
+            show_reasoning_value = False
+            if hasattr(app, 'current_page_context') and 'reasoning_toggle_ref' in app.current_page_context:
+                show_reasoning_value = app.current_page_context['reasoning_toggle_ref'].value
+            update_chat_display(app_state['chat_container_ref'], session_id, show_reasoning=show_reasoning_value)
+            gui_log(f"send_chat_message: Chat display updated. Session: {session_id}") # LOG 7
+        else:
+            gui_log(f"send_chat_message: Chat container ref not available for update. Session: {session_id}", level="WARNING")
+
+    except Exception as e:
+        gui_log(f"Error in send_chat_message for session {session_id}: {e}", level="CRITICAL", exc_info=True)
+        client.notify(f"Error sending message: {str(e)[:100]}", type="negative")
+    finally:
+        # Only clear if the message wasn't just whitespace (which would have returned early)
+        if message_text_area and (not message_text_area.value or message_text_area.value.strip()): # Check if message_text_area is not None
+             message_text_area.set_value("")
+        gui_log(f"send_chat_message: finally block executed. Input cleared if appropriate. Session: {session_id}") # LOG 8
+
+
+@ui.page('/chat/{session_id}')
+async def chat_session_page(client: Client, session_id: str):
+    """
+    Displays the chat interface for a given session_id.
+    """
+    # Store page-specific context if needed, e.g., for send_chat_message to access toggle state
+    app.current_page_context = {} # Initialize a simple context for this page load
+
+    session = app_state["chat_sessions"].get(session_id)
+    app_state["active_chat_session_id"] = session_id # Mark this session as active
+
+    if not session:
+        ui.notify(f"Chat session {session_id} not found.", type="negative")
+        gui_log(f"Chat session page: Session {session_id} not found.", level="ERROR")
+        ui.navigate.to('/')
+        return
+
+    # --- Page Header ---
+    with ui.header(elevated=True).classes('bg-primary text-white items-center q-pa-sm'):
+        ui.button(icon='arrow_back', on_click=lambda: ui.navigate.to('/')).props('flat round dense')
+        ui.label("AI Minion Army - Chat Interface").classes('text-h6')
+        ui.space()
+        # Placeholder for any header actions specific to chat page
+
+    # --- Main Chat Page Layout ---
+    with ui.column().classes('w-full h-screen p-0 m-0 flex flex-col'): # Full height, flex column
+        
+        # --- Chat Header Card ---
+        with ui.card().classes('w-full q-mb-sm rounded-none'): # No rounded corners for top card
+            with ui.card_section():
+                participants = session.get("agents", [])
+                participant_names = [get_formatted_minion_display(pid) for pid in participants]
+                if session.get("type") == "group":
+                    chat_title = f"Group Chat with {len(participants)} Agent(s)"
+                    if participant_names:
+                        chat_title += f": {', '.join(participant_names)}"
+                else: # Individual
+                    chat_title = f"Chat with {participant_names[0] if participant_names else 'Unknown Agent'}"
+                ui.label(chat_title).classes('text-subtitle1 font-medium')
+
+        # --- Chat Controls ---
+        with ui.row().classes('w-full items-center q-pa-sm q-gutter-sm bg-grey-2'):
+            ui.button("Export Chat", on_click=lambda: ui.notify("Export chat clicked (not implemented).")).props('dense outline')
+            
+            reasoning_toggle = ui.toggle({False: 'Hide Reasoning', True: 'Show Reasoning'}, value=False).props('dense')
+            app.current_page_context['reasoning_toggle_ref'] = reasoning_toggle # Store ref for send_chat_message
+
+            # AI Settings Dialog
+            ai_settings_dialog = ui.dialog()
+            with ai_settings_dialog, ui.card().classes('q-pa-md'):
+                ui.label("AI Settings").classes('text-h6 q-mb-md')
+                ui.label("AI Temperature").classes('text-caption')
+                # Assuming llm_config is available in app_state
+                temp_slider = ui.slider(min=0.0, max=1.0, step=0.1, value=app_state.get("llm_config", {}).get("temperature", 0.7)) \
+                    .on('update:model-value', lambda e: app_state.setdefault("llm_config", {}).update({"temperature": e.value}))
+                ui.label().bind_text_from(temp_slider, 'value', backward=lambda v: f"{v:.1f}")
+                # Add more settings here if needed
+                with ui.row().classes('justify-end w-full q-mt-md'):
+                    ui.button("Close", on_click=ai_settings_dialog.close).props('flat')
+
+            ui.button("AI Settings", icon='settings', on_click=ai_settings_dialog.open).props('dense outline')
+        
+        # --- Chat Messages Container ---
+        # This container will be filled by update_chat_display
+        # It needs to be scrollable and take up most of the space
+        chat_container = ui.column().classes('w-full flex-grow overflow-y-auto q-pa-sm bg-grey-1')
+        app_state['chat_container_ref'] = chat_container # Store reference for A2A handler and send_chat_message
+
+        # --- Message Input Area ---
+        with ui.row().classes('w-full items-center q-pa-sm q-gutter-xs bg-grey-3'):
+            chat_input_area = ui.textarea(placeholder="Type your message here...") \
+                .props('outlined dense autogrow rounded clearable hide-bottom-space') \
+                .classes('flex-grow')
+            
+            send_button = ui.button(icon='send') \
+                .props('round dense color=primary') \
+                .on('click', lambda: asyncio.create_task(send_chat_message(client, session_id, chat_input_area))) # Pass client
+            
+            chat_input_area.on('keydown.enter', lambda: asyncio.create_task(send_chat_message(client, session_id, chat_input_area))) # Pass client
+            
+    # --- Event Handlers and Initial Load ---
+    def handle_reasoning_toggle_change(e):
+        gui_log(f"Reasoning toggle changed to: {e.value} for session {session_id}", level="DEBUG")
+        if 'chat_container_ref' in app_state and app_state['chat_container_ref']:
+            update_chat_display(app_state['chat_container_ref'], session_id, show_reasoning=e.value)
+        else:
+            gui_log("Chat container ref not found for reasoning toggle update.", level="WARNING")
+
+    reasoning_toggle.on('update:model-value', handle_reasoning_toggle_change)
+
+    # Initial call to load messages
+    # Ensure client is fully connected and page is rendered before heavy JS like scrollIntoView
+    await client.connected() 
+    if 'chat_container_ref' in app_state and app_state['chat_container_ref']:
+        update_chat_display(app_state['chat_container_ref'], session_id, show_reasoning=reasoning_toggle.value)
+    else:
+        gui_log("Chat container ref not found for initial display.", level="ERROR")
+        with chat_container: # Fallback if ref somehow failed
+             ui.label("Error: Chat display area not initialized correctly.").classes("text-negative")
+
+    gui_log(f"Chat page for session {session_id} loaded.", level="INFO")
+
+    # Cleanup when client disconnects or navigates away (optional)
+    async def cleanup_chat_page():
+        gui_log(f"Cleaning up chat page for session {session_id}", level="DEBUG")
+        if app_state.get("active_chat_session_id") == session_id:
+            app_state["active_chat_session_id"] = None
+        if 'chat_container_ref' in app_state: # Clear ref to avoid issues if page is reloaded differently
+            app_state['chat_container_ref'] = None
+        if 'current_page_context' in app: # Clear page-specific context
+            del app.current_page_context
+    
+    client.on_disconnect(cleanup_chat_page)
+    # client.on_navigation(cleanup_chat_page) # Might be too aggressive, consider specific cleanup needs
+
+# --- End of Chat Interface Page ---
+
+# --- Collaborative Task Creation (GUI-2.2) ---
+
+async def handle_collaborative_task_submission(task_description_str: str, coordinator_id: str, submit_button_ref: ui.button):
+    """
+    Handles the form submission for creating a new collaborative task.
+    Sends an A2A message to the selected coordinator.
+    Includes error handling, user feedback, and loading indicators.
+    """
+    gui_log(f"Attempting to submit collaborative task. Description: '{task_description_str[:50]}...', Coordinator: {coordinator_id}", level="INFO")
+
+    if not task_description_str or not task_description_str.strip():
+        ui.notify("Task Description cannot be empty.", type="negative")
+        gui_log("Collaborative task submission failed: Task Description was empty.", level="WARNING")
+        return
+
+    if not coordinator_id:
+        ui.notify("Coordinator Minion must be selected.", type="negative")
+        gui_log("Collaborative task submission failed: Coordinator Minion not selected.", level="WARNING")
+        return
+
+    original_button_text = submit_button_ref.text # Assuming default is "Submit Collaborative Task"
+    submit_button_ref.props("loading=true icon=none")
+    submit_button_ref.text = "Submitting..."
+
+    try:
+        payload = {
+            "task_description": task_description_str.strip(),
+            "requester_id": "STEVEN_GUI_COMMANDER"
+        }
+
+        success = await send_a2a_message_to_minion(
+            minion_id=coordinator_id,
+            message_type="collaborative_task_request",
+            a2a_payload=payload,
+            notification_verb="submit collaborative task request"
+        )
+
+        if success:
+            ui.notify("Collaborative task submitted successfully.", type="positive")
+            gui_log(f"Collaborative task request successfully sent to coordinator {coordinator_id}.", level="INFO")
+            # Optionally clear form fields here if needed, e.g., task_description_textarea.value = ""
+        # else:
+            # send_a2a_message_to_minion handles its own notification for send failure.
+            # gui_log(f"Failed to send collaborative task request to coordinator {coordinator_id} (send_a2a_message_to_minion returned False).", level="WARNING")
+
+    except Exception as e:
+        gui_log(f"Error in handle_collaborative_task_submission: {e}", level="ERROR")
+        ui.notify(f"Failed to submit task: {e}", type="negative")
+    finally:
+        submit_button_ref.props("loading=false")
+        submit_button_ref.text = original_button_text # Restore original text
+
+
+def create_collaborative_task_ui():
+    """
+    Renders the UI elements for the collaborative task definition form.
+    This function should be called within the collaborative_tasks_page.
+    """
+    with ui.card().classes('w-full q-mb-md'):
+        with ui.card_section():
+            ui.label("Define New Collaborative Task").classes('text-h6')
+
+    with ui.column() as task_form: # Changed from ui.form()
+        task_description_textarea = ui.textarea(
+            "Task Description",
+                placeholder="Enter a detailed description of the collaborative task..."
+            ).props('outlined dense autogrow required')
+
+        # Populate coordinator selector
+        minions_with_coordination_skill = {}
+        coordinator_select = None # Initialize to None
+
+        # Temporarily mark all minions as having coordination skill
+        for minion_id in app_state.get("minions", {}):
+            if "capabilities" not in app_state["minions"][minion_id]:
+                app_state["minions"][minion_id]["capabilities"] = {}
+            if "skills" not in app_state["minions"][minion_id]["capabilities"]:
+                app_state["minions"][minion_id]["capabilities"]["skills"] = []
+            if "task_coordination" not in app_state["minions"][minion_id]["capabilities"]["skills"]: # Avoid duplicates
+                app_state["minions"][minion_id]["capabilities"]["skills"].append("task_coordination")
+
+        try:
+            for minion_id, minion_data in app_state.get("minions", {}).items():
+                capabilities = minion_data.get("capabilities", {})
+                skills = capabilities.get("skills", [])
+                has_skill = False
+                for skill in skills:
+                    if isinstance(skill, str) and skill == "task_coordination":
+                        has_skill = True
+                        break
+                    elif isinstance(skill, dict) and skill.get("name") == "task_coordination":
+                        has_skill = True
+                        break
+                if has_skill:
+                    minions_with_coordination_skill[minion_id] = get_formatted_minion_display(minion_id)
+        except Exception as e:
+            gui_log(f"Error populating coordinator selector in create_collaborative_task_ui: {e}", level="ERROR")
+            ui.notify("Error loading coordinator options. Please try refreshing or check logs.", type="warning", multi_line=True)
+            # minions_with_coordination_skill will remain as it was before the error (likely empty)
+
+        if not minions_with_coordination_skill:
+             ui.label("No minions with 'task_coordination' skill found. Cannot assign coordinator.").classes("text-negative q-mb-sm")
+             # coordinator_select remains None
+        else:
+            coordinator_select = ui.select(
+                options=minions_with_coordination_skill,
+                label="Select Coordinator Minion"
+            ).props('outlined dense required')
+
+            submit_button = ui.button("Submit Collaborative Task").props('color=primary q-mt-md')
+
+            async def submit_action():
+                if coordinator_select is not None and coordinator_select.value:
+                    # Pass the button reference to the handler
+                    await handle_collaborative_task_submission(
+                        task_description_textarea.value,
+                        coordinator_select.value,
+                        submit_button # Pass the button instance
+                    )
+                elif coordinator_select is None and not minions_with_coordination_skill: # No coordinators were available at all
+                     ui.notify("Cannot submit: No coordinator minions available with the required skill.", type="negative")
+                else: # Coordinators were available, but none selected, or coordinator_select is None due to error
+                     ui.notify("Please select a coordinator minion.", type="negative")
+            
+            submit_button.on('click', submit_action)
+
+
+@ui.page('/collaborative-tasks')
+async def collaborative_tasks_page(client: Client):
+    """
+    Page for managing and creating collaborative tasks.
+    Currently, it only includes the UI for creating new tasks.
+    """
+    # Standard Page Header
+    with ui.header(elevated=True).classes('bg-primary text-white items-center q-pa-sm'):
+        ui.button(icon='arrow_back', on_click=lambda: ui.navigate.to('/')).props('flat round dense color=white')
+        ui.label("Collaborative Task Management").classes('text-h6')
+        ui.space()
+        # Add refresh or other actions if needed later
+
+    # Main content area for the page
+    with ui.column().classes('q-pa-md items-stretch w-full'):
+        # Call the function to create the task definition UI
+        create_collaborative_task_ui()
+
+        # Placeholder for displaying existing collaborative tasks (GUI-2.3 / GUI-2.4)
+        with ui.card().classes('w-full q-mt-lg'):
+            with ui.card_section():
+                ui.label("Existing Collaborative Tasks (Placeholder)").classes('text-subtitle1')
+                # This area will be populated by GUI-2.3/2.4 logic
+                ui.label("A list or table of ongoing and completed collaborative tasks will appear here.").classes('text-italic')
+                # Reference to the container for existing tasks, if needed for dynamic updates
+                app_state["collaborative_tasks_container_ref"] = ui.column() # Example placeholder
+
+# --- End of Collaborative Task Creation ---
+
+# --- Collaborative Task Detail Page (GUI-2.5) ---
+def show_task_details(task_id: str):
+    """Navigates to the detailed view of a specific collaborative task."""
+    gui_log(f"Attempting to show details for collaborative task: {task_id}")
+    if task_id in app_state.get("collaborative_tasks", {}):
+        app_state["active_collaborative_task_id"] = task_id
+        ui.navigate.to(f"/collaborative-task/{task_id}")
+    else:
+        ui.notify(f"Task ID {task_id} not found.", type="negative")
+        gui_log(f"Task ID {task_id} not found in app_state['collaborative_tasks'] for detail view.", level="WARNING")
+
+def show_minion_details(minion_id: str):
+    """Navigates to the minion detail page."""
+    gui_log(f"Navigating to details page for minion: {minion_id}")
+    ui.navigate.to(f"/minion/{minion_id}")
+
+@ui.page('/collaborative-task/{task_id}')
+async def task_detail_page(client: Client, task_id: str):
+    """Displays the detailed information for a specific collaborative task."""
+    
+    # --- Page Header ---
+    with ui.header(elevated=True).classes('bg-primary text-white items-center q-pa-sm'):
+        ui.button(icon='arrow_back', on_click=lambda: ui.navigate.to('/#collaborative_tasks_dashboard_tab')).props('flat round dense') # Assuming tab navigation
+        ui.label(f"Task Details: {task_id}").classes('text-h6')
+        ui.space()
+        # Placeholder for any header actions specific to this page
+
+    task = app_state.get("collaborative_tasks", {}).get(task_id)
+    if not task:
+        ui.notify(f"Collaborative task {task_id} not found.", type="negative")
+        gui_log(f"Collaborative task detail page: Task {task_id} not found in app_state.", level="ERROR")
+        ui.navigate.to('/') # Navigate to home or a relevant dashboard page
+        return
+
+    # Store reference to the main container for A2A refresh
+    with ui.column().classes('w-full q-pa-md items-stretch') as detail_container:
+        app_state['collaborative_task_detail_container_ref'] = detail_container
+
+        # --- General Task Information Card ---
+        with ui.card().classes('w-full q-mb-md'):
+            with ui.card_section():
+                ui.label("General Task Information").classes('text-subtitle1 font-bold q-mb-sm')
+                with ui.grid(columns=2).classes('gap-y-xs'): # Two columns for key-value pairs
+                    ui.label("Task ID:").classes('font-medium')
+                    ui.label(task.get("task_id", "N/A"))
+                    
+                    ui.label("Full Description:").classes('font-medium')
+                    ui.label(task.get("description", "N/A")).classes('col-span-full' if len(task.get("description", "")) > 50 else '') # Span if long
+                    
+                    ui.label("Status:").classes('font-medium')
+                    ui.label(task.get("status", "N/A")).classes(f"status-{task.get('status', 'unknown').lower()}") # For potential styling
+                    
+                    ui.label("Coordinator:").classes('font-medium')
+                    ui.label(get_formatted_minion_display(task.get("coordinator_id", "N/A")))
+
+                    ui.label("Creation Time:").classes('font-medium')
+                    created_at_ts = task.get("created_at")
+                    created_at_str = datetime.fromtimestamp(created_at_ts).strftime('%Y-%m-%d %H:%M:%S') if created_at_ts else "N/A"
+                    ui.label(created_at_str)
+
+                    ui.label("Completion Time:").classes('font-medium')
+                    completed_at_ts = task.get("completed_at")
+                    completed_at_str = datetime.fromtimestamp(completed_at_ts).strftime('%Y-%m-%d %H:%M:%S') if completed_at_ts else "N/A"
+                    ui.label(completed_at_str)
+                    
+                    ui.label("Duration:").classes('font-medium')
+                    duration_str = "N/A"
+                    if created_at_ts and completed_at_ts:
+                        duration_seconds = completed_at_ts - created_at_ts
+                        # Format duration (e.g., Xh Ym Zs)
+                        m, s = divmod(duration_seconds, 60)
+                        h, m = divmod(m, 60)
+                        duration_str = ""
+                        if h > 0: duration_str += f"{int(h)}h "
+                        if m > 0 or h > 0: duration_str += f"{int(m)}m " # Show minutes if hours are present or if minutes > 0
+                        duration_str += f"{s:.2f}s"
+                    elif task.get("elapsed_seconds") is not None:
+                         # Format duration (e.g., Xh Ym Zs)
+                        m, s = divmod(task["elapsed_seconds"], 60)
+                        h, m = divmod(m, 60)
+                        duration_str = ""
+                        if h > 0: duration_str += f"{int(h)}h "
+                        if m > 0 or h > 0: duration_str += f"{int(m)}m "
+                        duration_str += f"{s:.2f}s"
+                    ui.label(duration_str)
+
+        # --- Subtasks Card ---
+        with ui.card().classes('w-full q-mb-md'):
+            with ui.card_section():
+                ui.label("Subtasks").classes('text-subtitle1 font-bold q-mb-sm')
+                subtasks = task.get("subtasks", {})
+                if not subtasks:
+                    ui.label("No subtasks defined for this task.").classes('text-italic')
+                else:
+                    subtask_table_columns = [
+                        {'name': 'subtask_id', 'label': 'Subtask ID', 'field': 'subtask_id', 'sortable': True, 'align': 'left'},
+                        {'name': 'description', 'label': 'Description', 'field': 'description', 'sortable': True, 'align': 'left', 'classes': 'max-w-xs overflow-hidden text-ellipsis whitespace-nowrap'},
+                        {'name': 'assigned_minion', 'label': 'Assigned Minion', 'field': 'assigned_minion', 'sortable': True, 'align': 'left'},
+                        {'name': 'status', 'label': 'Status', 'field': 'status', 'sortable': True, 'align': 'left'},
+                        {'name': 'last_updated', 'label': 'Last Updated', 'field': 'last_updated_str', 'sortable': True, 'align': 'left'},
+                    ]
+                    subtask_table_rows = []
+                    for st_id, st_data in subtasks.items():
+                        last_updated_ts = st_data.get("last_updated")
+                        subtask_table_rows.append({
+                            "subtask_id": st_id,
+                            "description": st_data.get("description", "N/A"),
+                            "assigned_minion": get_formatted_minion_display(st_data.get("assigned_to", "N/A")),
+                            "status": st_data.get("status", "N/A"),
+                            "last_updated_ts": last_updated_ts, # For sorting
+                            "last_updated_str": datetime.fromtimestamp(last_updated_ts).strftime('%Y-%m-%d %H:%M:%S') if last_updated_ts else "N/A"
+                        })
+                    
+                    # Sort by last_updated by default, descending
+                    subtask_table_rows.sort(key=lambda x: x.get("last_updated_ts", 0), reverse=True)
+
+                    ui.table(columns=subtask_table_columns, rows=subtask_table_rows, row_key='subtask_id').classes('w-full')
+
+        # --- Task Results Card (GUI-2.6) ---
+        if task.get("status", "").lower() == "completed" and task.get("results"):
+            with ui.card().classes('w-full q-mb-md'):
+                with ui.card_section():
+                    ui.label("Task Results").classes('text-subtitle1 font-bold q-mb-sm')
+                    results_data = task.get("results", {})
+                    if isinstance(results_data, dict) and results_data:
+                        for key, value in results_data.items():
+                            with ui.expansion(f"Result for: {key}", icon="description").classes('w-full q-mb-xs'):
+                                if isinstance(value, str):
+                                    ui.markdown(value)
+                                else: # If result is complex (e.g. dict/list), display as JSON for now
+                                    ui.json_editor({"content": {"json": value}}).props('readonly')
+                    elif isinstance(results_data, str):
+                        ui.markdown(results_data)
+                    elif not results_data:
+                         ui.label("No results available for this task.").classes('text-italic')
+                    else: # Fallback for other types
+                        ui.label("Results:").classes('font-medium')
+                        ui.code(str(results_data))
+        
+        # Add a refresh button for debugging or manual refresh
+        ui.button("Refresh Page Data", on_click=lambda: detail_container.refresh(), icon='refresh').props('outline dense color=grey-7 q-mt-md')
+
+
+    # Ensure the page is refreshed if it's already the active task when loaded
+    # This is mainly for cases where the user navigates directly via URL
+    if app_state.get("active_collaborative_task_id") == task_id and 'collaborative_task_detail_container_ref' in app_state:
+        app_state['collaborative_task_detail_container_ref'].refresh()
+
+    await client.connected() # Ensure client is connected before trying to update UI from background tasks
+    # Periodically refresh this page if it's the active one, to catch updates not pushed by A2A immediately
+    # This is a fallback and might be removed if A2A updates are perfectly reliable.
+    # async def _periodic_refresh():
+    #     while client.id in app.clients and ui.context.client.id == client.id and app_state.get("active_collaborative_task_id") == task_id:
+    #         await asyncio.sleep(15) # Refresh every 15 seconds
+    #         if app_state.get("active_collaborative_task_id") == task_id and 'collaborative_task_detail_container_ref' in app_state:
+    #             gui_log(f"Periodic refresh for task detail page {task_id}", level="DEBUG")
+    #             app_state['collaborative_task_detail_container_ref'].refresh()
+    # client.on_disconnect(lambda: gui_log(f"Client disconnected from task detail page {task_id}", level="DEBUG"))
+    # asyncio.create_task(_periodic_refresh())
+
+@ui.page('/minion/{minion_id}')
+async def minion_detail_page(client: Client, minion_id: str):
+    """Displays detailed information about a specific minion."""
+    gui_log(f"Loading detail page for minion: {minion_id}")
+
+    # Ensure app_state['minion_detail_container_ref'] exists
+    if 'minion_detail_container_ref' not in app_state:
+        app_state['minion_detail_container_ref'] = {}
+
+    page_container = ui.column().classes('w-full items-stretch q-pa-md')
+    app_state['minion_detail_container_ref'][minion_id] = page_container # Store ref
+
+    def _render_minion_details():
+        page_container.clear()
+        minion_data = app_state.get("minions", {}).get(minion_id)
+
+        with page_container:
+            # Header with back button
+            with ui.row().classes('items-center q-mb-md w-full'):
+                ui.button(icon='arrow_back', on_click=lambda: ui.navigate.to('/')).props('flat round dense')
+                ui.label(f"Minion Details: {get_formatted_minion_display(minion_id) if minion_data else minion_id}").classes('text-h5 q-ml-md')
+
+            if not minion_data:
+                ui.label(f"Minion with ID '{minion_id}' not found.").classes('text-h6 text-negative q-ma-md')
+                return
+
+            # Main content area
+            with ui.column().classes('w-full gap-4'):
+                # Minion Info Card
+                with ui.card().classes('w-full'):
+                    with ui.card_section():
+                        ui.label("Minion Information").classes('text-subtitle1 font-bold')
+                    with ui.card_section().classes('q-gutter-xs'):
+                        ui.label(f"ID: {minion_id}")
+                        # Formatted name is already handled by get_formatted_minion_display in header
+                        ui.label(f"Status: {minion_data.get('status', 'N/A')}")
+                        ui.label(f"Personality: {minion_data.get('personality', 'N/A')}")
+                        ui.label(f"Description: {minion_data.get('description', 'N/A')}")
+                        ui.button("Customize Personality", icon="face_retouching_natural", on_click=lambda: open_personality_dialog(minion_id)).props('q-mt-sm outline dense')
+                
+                # Capabilities Card
+                with ui.card().classes('w-full'):
+                    with ui.card_section():
+                        ui.label("Capabilities").classes('text-subtitle1 font-bold')
+                    with ui.card_section():
+                        capabilities = minion_data.get('capabilities', {})
+                        if not capabilities or not isinstance(capabilities, dict):
+                            ui.label("No capabilities data available or format is unexpected.")
+                        else:
+                            # Skills
+                            skills_list = capabilities.get('skills', minion_data.get('skills', [])) # Check capabilities first, then root
+                            if skills_list:
+                                ui.label("Skills:").classes('text-caption font-medium text-grey-7 q-mt-xs')
+                                with ui.list().props('dense separator dense-padding'):
+                                    for skill in skills_list:
+                                        with ui.item():
+                                            with ui.item_section():
+                                                if isinstance(skill, dict):
+                                                    skill_name = skill.get('name', 'N/A')
+                                                    skill_version = skill.get('version')
+                                                    skill_desc = skill.get('description', 'N/A')
+                                                    ui.item_label(f"{skill_name}{f' (v{skill_version})' if skill_version else ''}").classes('text-body2')
+                                                    if skill_desc and skill_desc != 'N/A': ui.item_label(skill_desc).props('caption').classes('text-grey-7')
+                                                else:
+                                                    ui.item_label(str(skill)).classes('text-body2')
+                            
+                            # MCP Tools
+                            mcp_tools_list = capabilities.get('mcp_tools', [])
+                            if mcp_tools_list:
+                                ui.label("MCP Tools:").classes('text-caption font-medium text-grey-7 q-mt-sm')
+                                with ui.list().props('dense separator dense-padding'):
+                                    for tool in mcp_tools_list:
+                                        with ui.item():
+                                            with ui.item_section():
+                                                if isinstance(tool, dict):
+                                                    tool_name = tool.get('tool_name', 'N/A')
+                                                    server_name = tool.get('server_name', 'N/A')
+                                                    tool_desc = tool.get('description', 'N/A')
+                                                    ui.item_label(f"{tool_name} (Server: {server_name})").classes('text-body2')
+                                                    if tool_desc and tool_desc != 'N/A': ui.item_label(tool_desc).props('caption').classes('text-grey-7')
+                                                else:
+                                                    ui.item_label(str(tool)).classes('text-body2')
+                            
+                            # Language Models
+                            language_models_list = capabilities.get('language_models', [])
+                            if language_models_list:
+                                ui.label("Language Models:").classes('text-caption font-medium text-grey-7 q-mt-sm')
+                                with ui.list().props('dense separator dense-padding'):
+                                    for model in language_models_list:
+                                        with ui.item():
+                                            with ui.item_section():
+                                                if isinstance(model, dict):
+                                                    model_name = model.get('model_name', 'N/A')
+                                                    provider = model.get('provider', 'N/A')
+                                                    ui.item_label(f"{model_name} (Provider: {provider})").classes('text-body2')
+                                                else:
+                                                    ui.item_label(str(model)).classes('text-body2')
+                            
+                            # Other Capability Types (Generic Display)
+                            other_cap_types = [k for k in capabilities.keys() if k not in ['skills', 'mcp_tools', 'language_models'] and capabilities[k]]
+                            if other_cap_types:
+                                ui.label("Other Defined Capabilities:").classes('text-caption font-medium text-grey-7 q-mt-sm')
+                                with ui.list().props('dense separator dense-padding'):
+                                    for cap_type_key in other_cap_types:
+                                        cap_value = capabilities[cap_type_key]
+                                        display_val = str(cap_value)
+                                        if isinstance(cap_value, list) and len(cap_value) > 3:
+                                            display_val = f"{len(cap_value)} items"
+                                        elif isinstance(cap_value, dict) and len(cap_value) > 3:
+                                            display_val = f"{len(cap_value)} keys"
+
+                                        with ui.item():
+                                            with ui.item_section():
+                                                ui.item_label(f"{cap_type_key.replace('_', ' ').title()}: {display_val[:100]}{'...' if len(display_val) > 100 else ''}").classes('text-body2')
+
+
+                # Collaborative Tasks Card
+                with ui.card().classes('w-full'):
+                    with ui.card_section():
+                        ui.label("Collaborative Tasks Involvement").classes('text-subtitle1 font-bold')
+                    with ui.card_section():
+                        coordinated_tasks_list = []
+                        participated_subtasks_list = []
+                        all_collab_tasks = app_state.get("collaborative_tasks", {})
+                        active_task_statuses = ['pending', 'in_progress', 'awaiting_subtask_completion', 'decomposing', 'awaiting_coordination']
+
+
+                        for task_id_loop, task_data_loop in all_collab_tasks.items():
+                            task_status_lower = task_data_loop.get('status', '').lower()
+                            if task_data_loop.get('coordinator_id') == minion_id and task_status_lower in active_task_statuses:
+                                coordinated_tasks_list.append(task_data_loop)
+                            
+                            for subtask_id_loop, subtask_data_loop in task_data_loop.get('subtasks', {}).items():
+                                subtask_status_lower = subtask_data_loop.get('status', '').lower()
+                                if subtask_data_loop.get('assigned_to') == minion_id and subtask_status_lower in active_task_statuses:
+                                    participated_subtasks_list.append({
+                                        "parent_task_id": task_id_loop,
+                                        "parent_description": task_data_loop.get("description", "N/A"),
+                                        "subtask_description": subtask_data_loop.get("description", "N/A"),
+                                        "status": subtask_data_loop.get("status", "N/A"),
+                                        "id": subtask_id_loop
+                                    })
+                        
+                        if not coordinated_tasks_list and not participated_subtasks_list:
+                            ui.label("Not actively involved in any collaborative tasks.").classes('text-italic')
+                        
+                        if coordinated_tasks_list:
+                            ui.label("Tasks Coordinated by this Minion (Active):").classes('text-body1 q-mt-sm q-mb-xs font-medium')
+                            with ui.list().props('bordered separator dense'):
+                                for task in coordinated_tasks_list:
+                                    with ui.item():
+                                        with ui.item_section():
+                                            ui.item_label(f"Task ID: {task.get('task_id')}")
+                                            ui.item_label(f"Desc: {task.get('description', 'N/A')[:70]}{'...' if len(task.get('description', 'N/A')) > 70 else ''}").props('caption')
+                                            ui.item_label(f"Status: {task.get('status', 'N/A')}")
+                                            active_subtasks = [s for s_id, s in task.get('subtasks', {}).items() if s.get('status','').lower() in active_task_statuses]
+                                            completed_subtasks = [s for s_id, s in task.get('subtasks', {}).items() if s.get('status','').lower() == 'completed']
+                                            ui.item_label(f"Subtasks: {len(completed_subtasks)}/{len(task.get('subtasks', {}))} done ({len(active_subtasks)} active)").props('caption')
+                                        with ui.item_section(side=True):
+                                            ui.button("View Task", on_click=lambda t_id=task.get('task_id'): show_task_details(t_id)).props('flat dense size=sm')
+                        
+                        if participated_subtasks_list:
+                            ui.label("Subtasks Assigned to this Minion (Active):").classes('text-body1 q-mt-md q-mb-xs font-medium')
+                            with ui.list().props('bordered separator dense'):
+                                for subtask in participated_subtasks_list:
+                                    with ui.item():
+                                        with ui.item_section():
+                                            ui.item_label(f"Parent: {subtask['parent_task_id']} ({subtask['parent_description'][:30]}{'...' if len(subtask['parent_description']) > 30 else ''})")
+                                            ui.item_label(f"Subtask: {subtask['subtask_description'][:70]}{'...' if len(subtask['subtask_description']) > 70 else ''}").props('caption')
+                                            ui.item_label(f"Status: {subtask['status']}")
+                                        with ui.item_section(side=True):
+                                            ui.button("View Parent", on_click=lambda pt_id=subtask['parent_task_id']: show_task_details(pt_id)).props('flat dense size=sm')
+                
+                # Debug Console Integration
+                with ui.card().classes('w-full'):
+                    with ui.card_section():
+                        ui.label("Debug Console").classes('text-subtitle1 font-bold')
+                    with ui.card_section():
+                        create_debug_console_ui(minion_id) # This function renders its own content
+
+    _render_minion_details() # Initial render
+
+    # Optional: Set up a timer to refresh if minion data might change from other sources
+    # For now, rely on navigation or manual refresh for simplicity, or A2A updates if they trigger this page's refresh.
+    # If app_state['minions'][minion_id] is updated by an A2A message handler, that handler
+    # could check if app_state['minion_detail_container_ref'][minion_id] exists and call its refresh/clear+re-render.
+
+    async def on_disconnect():
+        gui_log(f"Client disconnected from minion detail page for {minion_id}. Cleaning up container reference.")
+        if minion_id in app_state.get('minion_detail_container_ref', {}):
+            del app_state['minion_detail_container_ref'][minion_id]
+            if not app_state['minion_detail_container_ref']: # if dict becomes empty
+                del app_state['minion_detail_container_ref'] # remove the key itself
+    client.on_disconnect(on_disconnect)
+
 def update_chat_log_display():
     if not chat_log_area: # chat_log_area is now the ui.column
         gui_log("Chat display column (chat_log_area) not initialized.", level="WARNING")
@@ -1016,7 +2882,7 @@ def update_chat_log_display():
                 chat_content_elements.append(ui.markdown(content_str))
             else:
                 # For other types (e.g., 'directive' from STEVEN_GUI_COMMANDER), use a label with previous styling
-                label_element = ui.label(content_str).classes('whitespace-pre-wrap text-sm')
+                label_element = ui.label(content_str).classes('whitespace-pre-wrap text-sm text-black dark:text-white')
                 chat_content_elements.append(label_element)
 
             cm = ui.chat_message(
@@ -1066,17 +2932,35 @@ async def main_page(client: Client):
     with ui.header().classes('bg-primary text-white items-center'):
         ui.label("AI Minion Army - Command Center").classes('text-h5')
         ui.space()
-        status_label = ui.label("A2A Server: Unknown")
+        # status_label is a global variable, assigned here.
+        # Initialize with a default text as per recommendation.
+        status_label = ui.label("A2A Server: Initializing...")
+        
+        # Store the reference in app_state for reliable access by fetch_a2a_server_status
+        if 'ui_elements' not in app_state:
+            app_state['ui_elements'] = {}
+        app_state['ui_elements']['a2a_status_label'] = status_label
+        
         ui.button(icon='refresh', on_click=fetch_a2a_server_status, color='white').tooltip("Refresh A2A Server Status")
 
     with ui.left_drawer(value=True, bordered=True).classes('bg-grey-2 q-pa-md') as left_drawer:
         ui.label("Navigation").classes('text-bold q-mb-md text-grey-8')
         with ui.list():
-            with ui.item().on('click', lambda: ui.navigate.to(main_page)): # Refresh or go home
+            with ui.item().classes('cursor-pointer').on('click', lambda: ui.navigate.to('/')):
                 with ui.item_section().props('avatar'):
-                    ui.icon('home').classes('text-grey-8')
+                    ui.icon('home', color='grey-8')
                 with ui.item_section():
                     ui.label("Dashboard").classes('text-grey-8')
+            with ui.item().classes('cursor-pointer').on('click', lambda: ui.navigate.to('/collaborative-tasks')):
+                with ui.item_section().props('avatar'):
+                    ui.icon('groups', color='grey-8')
+                with ui.item_section():
+                    ui.label("Collaborative Tasks").classes('text-grey-8')
+            with ui.item().classes('cursor-pointer').on('click', lambda: ui.navigate.to('/system-configuration')):
+                with ui.item_section().props('avatar'):
+                    ui.icon('settings_applications', color='grey-8')
+                with ui.item_section():
+                    ui.label("System Configuration").classes('text-grey-8')
             
             # Add more navigation items here if needed in future versions
             # e.g., Minion Detail Page, Task Management Page, System Settings Page
@@ -1137,7 +3021,7 @@ async def main_page(client: Client):
                 # Example: ui.log().classes('h-48 w-full bg-black text-white') to show live logs
 
     with ui.footer().classes('bg-grey-3 text-black q-pa-sm text-center'):
-        ui.label(f"AI Minion Army Command Center v1.0 - Codex Omega Genesis - User: Steven - Deployed: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
+        ui.label(f"AI Minion Army Command Center v1.0 - Codex Omega Genesis - User: Steven - Deployed: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC")
 
     # Setup periodic refresh for server status and minion list
     # BIAS_CHECK: Frequent polling can be inefficient. Consider websockets or SSE for A2A server if it supports it.
@@ -1153,6 +3037,122 @@ async def main_page(client: Client):
     await fetch_commander_messages() # Initial fetch for commander messages
     update_chat_log_display() # Ensure chat log is populated on initial load / refresh after all fetches
 
+@ui.page('/system-configuration')
+async def system_configuration_page(client: Client):
+    """
+    Page for displaying system-level configurations like LLM settings and MCP Tool Management.
+    """
+    ui.dark_mode().enable() # Consistent dark mode
+    # --- Header ---
+    with ui.header(elevated=True).classes('bg-primary text-white items-center q-pa-sm'):
+        ui.button(icon='arrow_back', on_click=lambda: ui.navigate.to('/')).props('flat round dense color=white')
+        ui.label("System Configuration").classes('text-h6')
+        ui.space()
+
+    # --- Main Content Area for System Configuration ---
+    with ui.column().classes('q-pa-md items-stretch w-full'):
+        ui.label("Manage system-wide settings for LLMs and MCP Tools.").classes('text-subtitle1 q-mb-md text-grey-8')
+        
+        create_model_config_ui() # Defined from previous (applied) diff
+        create_tool_management_ui() # Defined from previous (applied) diff
+
+        ui.element('div').classes('q-mt-xl') # Spacer
+
+# --- System Monitoring Dashboard Page (GUI-4.1) ---
+@ui.page('/system-dashboard')
+async def system_dashboard_page(client: Client):
+    """Displays system-wide monitoring information."""
+    ui.dark_mode().enable() # Consistent dark mode
+
+    # Header
+    with ui.header(elevated=True).classes('bg-primary text-white items-center q-pa-sm'):
+        ui.button(icon='arrow_back', on_click=lambda: ui.navigate.to("/")).props('flat round dense color=white')
+        ui.label("System Monitoring Dashboard").classes('text-h6')
+        ui.space()
+        # Consider adding a refresh button that calls a data fetch and UI update function
+        # ui.button(icon='refresh', on_click=system_dashboard_page.refresh).props('flat round dense color=white')
+
+    with ui.column().classes('q-pa-md items-stretch w-full gap-4'): # Added gap-4 for spacing between cards
+        # System Status Card
+        with ui.card().classes('w-full'):
+            with ui.card_section():
+                ui.label("System Status").classes('text-h6')
+            with ui.card_section().classes('q-gutter-md'): # q-gutter-md for spacing between elements if multiple rows
+                with ui.row().classes('items-center w-full justify-around'):
+                    with ui.card().classes('text-center q-pa-md min-w-[180px] shadow-2 rounded-borders'): # Added styling
+                        ui.label("A2A Server Status").classes('text-subtitle2 text-grey-7')
+                        a2a_status_val = app_state.get("a2a_server_status", "Unknown")
+                        a2a_status_color = 'positive' if a2a_status_val == "Online" else ('negative' if "Error" in a2a_status_val or "Offline" in a2a_status_val else 'warning')
+                        ui.badge(a2a_status_val, color=a2a_status_color).classes('text-body1 q-mt-xs q-pa-xs')
+                    
+                    with ui.card().classes('text-center q-pa-md min-w-[180px] shadow-2 rounded-borders'):
+                        ui.label("Active Minions").classes('text-subtitle2 text-grey-7')
+                        ui.label(str(len(app_state.get("minions", {})))).classes('text-h5 q-mt-xs font-weight-bold')
+
+                    with ui.card().classes('text-center q-pa-md min-w-[180px] shadow-2 rounded-borders'):
+                        ui.label("Collaborative Tasks").classes('text-subtitle2 text-grey-7')
+                        # Display total number of collaborative tasks as per instruction
+                        ui.label(str(len(app_state.get("collaborative_tasks", {})))).classes('text-h5 q-mt-xs font-weight-bold')
+        
+        # Minion Status Summary Card
+        with ui.card().classes('w-full'):
+            with ui.card_section():
+                ui.label("Minion Status Summary").classes('text-h6')
+            with ui.card_section():
+                minion_statuses = {
+                    "Idle": 0, "Running": 0, "Paused": 0, "Error": 0, "Unknown": 0,
+                    "Pausing...": 0, "Resuming...": 0, "Initializing": 0, # Added Initializing
+                }
+                # Quasar standard colors: positive, negative, warning, info, dark, primary, secondary, accent
+                status_colors_map = {
+                    "Idle": "positive", "Running": "primary",
+                    "Paused": "warning", "Error": "negative",
+                    "Unknown": "grey-6", # More specific grey
+                    "Pausing...": "orange-8", "Resuming...": "light-blue-7",
+                    "Initializing": "info"
+                }
+
+                minions_list = app_state.get("minions", {}).values()
+                if not minions_list:
+                    ui.label("No minions registered to display status for.").classes('text-italic q-pa-sm')
+                else:
+                    for minion_data in minions_list:
+                        status = minion_data.get("status", "Unknown")
+                        if status in minion_statuses:
+                            minion_statuses[status] += 1
+                        else:
+                            minion_statuses["Unknown"] += 1
+                            gui_log(f"Dashboard: Encountered unexpected minion status '{status}'. Categorized as Unknown.", level="WARNING")
+                    
+                    with ui.row().classes('items-stretch w-full justify-around q-gutter-sm'): # items-stretch for equal height cards
+                        displayed_statuses = 0
+                        for status, count in sorted(minion_statuses.items()): # Sort for consistent order
+                            if count > 0: # Only display statuses with minions
+                                displayed_statuses +=1
+                                with ui.card().classes('text-center q-pa-sm min-w-[130px] flex-grow shadow-1 rounded-borders'): # flex-grow for responsiveness
+                                    ui.label(status).classes('text-caption text-grey-8')
+                                    ui.badge(str(count), color=status_colors_map.get(status, "dark")).classes('text-h6 q-mt-xs q-pa-xs')
+                        if displayed_statuses == 0 and minions_list: # All minions have unknown or unmapped statuses
+                             ui.label("All registered minions have an unclassified status.").classes('text-italic q-pa-sm')
+
+
+    # Setup a timer to refresh the data on this page periodically.
+    # This is a simple way to keep the dashboard updated.
+    # More sophisticated would be to use app.storage or client-specific updates.
+    # For now, this will re-run the page function for the client.
+    # Note: This creates a new timer each time the page is loaded.
+    # A better approach for page-specific timers might involve client.on_connect and client.on_disconnect
+    # or ensuring the timer is only created once.
+    # However, for this task, a simple periodic refresh of the page content is acceptable.
+    # async def refresh_dashboard_data():
+    #     await fetch_a2a_server_status() # Ensure this updates app_state
+    #     await fetch_registered_minions() # Ensure this updates app_state
+    #     # Fetch collaborative tasks if needed for the count
+    #     system_dashboard_page.refresh() # This re-runs the current page function
+
+    # if client.has_socket_connection: # Only set timer if client is connected
+    #    ui.timer(15, refresh_dashboard_data, active=True) # Refresh every 15s
+
 # --- Entry point for running the GUI ---
 def run_gui(host, port):
     gui_log(f"Starting Management GUI on http://{host}:{port}")
@@ -1164,13 +3164,32 @@ def run_gui(host, port):
     generated_storage_secret = os.urandom(16).hex()
     gui_log(f"Generated NiceGUI storage_secret: {'*' * len(generated_storage_secret)}") # Don't log the actual secret
 
+    # Ensure logs directory exists before starting timers that might log
+    if not os.path.exists(LOGS_DIR):
+        os.makedirs(LOGS_DIR)
+        gui_log(f"Created logs directory: {LOGS_DIR}")
+
+    # Global periodic tasks (should ideally be started once)
+    # These are started when run_gui is called.
+    # If run_gui can be called multiple times in some scenarios (e.g. testing), ensure timers are handled correctly.
+    # For a typical single server start, this is fine.
+    if not hasattr(app, 'startup_tasks_initialized'): # Simple flag to run once
+        gui_log("Initializing global periodic tasks for GUI.")
+        ui.timer(GUI_SERVER_STATUS_POLLING_INTERVAL_SECONDS, fetch_a2a_server_status, active=True)
+        ui.timer(GUI_MINION_LIST_POLLING_INTERVAL_SECONDS, fetch_registered_minions, active=True)
+        ui.timer(GUI_COMMANDER_MESSAGE_POLLING_INTERVAL_SECONDS, fetch_commander_messages, active=True)
+        # ui.timer(COLLABORATIVE_TASK_POLLING_INTERVAL_SECONDS, fetch_collaborative_tasks, active=True) # If needed
+        app.startup_tasks_initialized = True
+
+
     ui.run(
         host=host,
         port=port,
         title="Minion Army Command Center",
         dark=True, # Codex Omega's preference
         reload=False, # Set to True for development, False for "production" deployment of this script
-        storage_secret=generated_storage_secret
+        storage_secret=generated_storage_secret,
+        # uvicorn_logging_level='warning' # Reduce uvicorn verbosity if needed
     )
 
 if __name__ == "__main__":
@@ -1181,6 +3200,20 @@ if __name__ == "__main__":
     # Get GUI host/port from ConfigManager for direct run
     GUI_HOST_RUN = config.get_str("gui.host", "127.0.0.1")
     GUI_PORT_RUN = config.get_int("gui.port", 8081)
+
+    # Ensure app_state['llm_config'] is initialized from the main config if not already set
+    # This provides defaults for the LLM config UI if it's the first thing loaded.
+    if "llm_config" not in app_state or not app_state["llm_config"]: # Check if it's missing or empty
+        app_state["llm_config"] = {
+            "model": config.get_str("llm.model", config.get_str("llm.default_model", "gemini-2.5-pro")),
+            "temperature": config.get_float("llm.temperature", 0.7),
+            "max_tokens": config.get_int("llm.max_tokens", 8192),
+            "top_p": config.get_float("llm.top_p", 0.95),
+            "top_k": config.get_int("llm.top_k", 40),
+            "presence_penalty": config.get_float("llm.presence_penalty", 0.0),
+            "frequency_penalty": config.get_float("llm.frequency_penalty", 0.0)
+        }
+        gui_log(f"Initialized app_state['llm_config'] from global config: {app_state['llm_config']}", level="DEBUG")
     
     # gui_log is defined before this block, so it's safe to call.
     gui_log(f"Attempting to run GUI directly on {GUI_HOST_RUN}:{GUI_PORT_RUN} (if not imported).")

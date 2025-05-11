@@ -1,0 +1,73 @@
+# Default Configuration for Minion System
+
+# General System Settings
+[system]
+project_name = "Minion_Orchestration_Framework"
+default_log_level = "INFO" # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+max_concurrent_minions = 10
+heartbeat_interval = 60 # Seconds
+
+# Paths - These are relative to the project root by default.
+# The ConfigManager will resolve them to absolute paths.
+[paths]
+logs_directory = "logs/"
+data_directory = "system_data/"
+# Path to the main script for the MCP Super Tool Node.js service
+mcp_super_tool_script_path = "mcp_super_tool/src/main.js"
+# Path to the configuration file used by the MCP Super Tool
+mcp_super_tool_config_path = "system_configs/mcp_config.json"
+# Path to the .env file for the MCP Super Tool (if any)
+mcp_super_tool_env_path = "mcp_super_tool/.env"
+
+
+# Minion Specific Configurations
+[minion_defaults]
+default_python_interpreter = "python3" # Could be a path to a specific venv
+startup_timeout = 300 # Seconds
+max_restarts = 3
+# Default environment variables for minions (can be overridden)
+default_env_vars = { PYTHONUNBUFFERED = "1" }
+
+# LLM Configuration (Example for a generic LLM service)
+[llm]
+provider = "gemini" # or "openai", "anthropic", etc.
+# model_name = "gemini-1.5-pro-latest"
+# api_key_env_var = "GEMINI_API_KEY" # Environment variable to get API key from
+# request_timeout = 120 # Seconds
+# Default parameters for LLM requests
+default_request_params = { temperature = 0.7, max_tokens = 2048 }
+
+# A2A (Agent-to-Agent) Communication Settings
+[a2a]
+server_host = "127.0.0.1"
+server_port = 5555
+# Default message TTL (Time-To-Live) in seconds
+message_ttl = 300
+# Max message size in bytes
+max_message_size = 1048576 # 1MB
+
+# MCP (Minion Control Protocol) Integration Settings
+[mcp_integration]
+# Command to start the MCP Node.js service that hosts SuperTool etc.
+# This command will be run from the project root.
+mcp_node_service_startup_command = "node ./mcp_super_tool/src/index.js" # Note: Plan said main.js, but index.js is more common for node
+# Port for the MCP Node.js service (if it exposes an HTTP interface for control/status)
+# mcp_node_service_port = 3000 # Example, if needed
+# Path to the mcp_config.json that the super_tool uses
+# This is referenced by the super_tool itself, not directly by this python config.
+# However, having it here allows this system to know where it *should* be.
+mcp_super_tool_config_location = "system_configs/mcp_config.json"
+
+
+# Management GUI Settings
+[management_gui]
+host = "127.0.0.1"
+port = 8080
+# Path to the script that runs the GUI
+# startup_script = "management_gui/gui_app.py" # Example, if needed for spawner
+# auto_launch = true
+
+# Feature Flags
+[feature_flags]
+enable_advanced_telemetry = false
+use_experimental_llm_routing = false

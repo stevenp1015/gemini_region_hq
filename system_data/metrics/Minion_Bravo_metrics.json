@@ -1,7 +1,7 @@
 {
   "component": "Minion_Bravo",
-  "timestamp": 1746997795.05953,
-  "uptime_seconds": 150.01464104652405,
+  "timestamp": 1746998245.076528,
+  "uptime_seconds": 600.0316390991211,
   "counters": {
     "a2a_messages_received{type=chat_session_start}": 1
   },

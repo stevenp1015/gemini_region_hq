@@ -1,7 +1,7 @@
 {
   "component": "Minion_Alpha",
-  "timestamp": 1746997795.058936,
-  "uptime_seconds": 150.01543927192688,
+  "timestamp": 1746998245.075231,
+  "uptime_seconds": 600.0317342281342,
   "counters": {},
   "gauges": {
     "is_paused": 0,

@@ -289,7 +289,7 @@ async def fetch_registered_minions():
         gui_log(f"Error decoding minions response from A2A server: {e}", level="ERROR")
 
 
-async def broadcast_message_to_all_minions(message_content_str):
+async def broadcast_message_to_all_minions(client: Client, message_content_str: str):
     # This is a simplified broadcast. A real A2A server might have a broadcast endpoint.
     # Or, we iterate through known minions and send one by one.
     # For V1, we assume a conceptual broadcast or sending to a "group" if A2A server supports.
@@ -340,13 +340,23 @@ async def broadcast_message_to_all_minions(message_content_str):
     for minion_id in app_state["minions"].keys():
         endpoint = f"{A2A_SERVER_URL}/agents/{minion_id}/messages"
         try:
-            # Run synchronous requests in a separate thread to avoid blocking NiceGUI's async loop
+            # This internal call to send_a2a_message_to_minion was for a generic POST.
+            # However, the actual broadcast logic here is custom.
+            # The ui.notify calls that caused issues were in the shared send_a2a_message_to_minion.
+            # This broadcast function builds its own UI updates in broadcast_status_area.
+            # For now, I will assume this function's direct UI updates are safe as they are within its context.
+            # If this also causes "slot stack empty", it will need similar client passing for its ui.label calls.
+            # The critical error was from ui.notify in the *shared* helper.
+            # This function does not call the shared send_a2a_message_to_minion helper.
+            # It implements its own direct requests.post.
+            # Therefore, no change is needed here regarding passing `client` to a helper it doesn't use.
+            # The following is the original logic for sending, which does not use the shared helper.
             response = await asyncio.to_thread(
                 requests.post, endpoint, json=message_payload, timeout=10
             )
             if response.status_code in [200, 201, 202, 204]:
                 gui_log(f"Message sent to {minion_id} successfully.")
-                with broadcast_status_area:
+                with broadcast_status_area: # This UI update should be fine as it's in the context of the broadcast_status_area
                     ui.label(f"Sent to {get_formatted_minion_display(minion_id)}: OK").style('color: green;')
                 success_count += 1
             else:
@@ -875,7 +885,7 @@ async def confirm_delete_tool(tool_data: dict):
     confirm_dialog.open()
 
 # GUI-3.1: LLM Configuration Interface
-def create_model_config_ui():
+def create_model_config_ui(client: Client): # Added client
     with ui.card().classes('w-full q-mb-md'):
         with ui.card_section():
             ui.label("LLM Configuration").classes('text-h6')
@@ -916,17 +926,21 @@ def create_model_config_ui():
                 frequency_penalty = ui.number("Frequency Penalty", value=config.get_float("llm.frequency_penalty", initial_llm_config.get("frequency_penalty", 0.0)), min=-2, max=2, step=0.01).props('outlined dense')
             
             save_llm_button = ui.button("Save LLM Configuration", on_click=None).props('color=primary q-mt-md')
-            save_llm_button.on('click', lambda: save_llm_config({
-                "model": model_select.value,
-                "temperature": temperature.value,
+            save_llm_button.on('click', lambda: save_llm_config(
+                client, # Pass client
+                {
+                    "model": model_select.value,
+                    "temperature": temperature.value,
                 "max_tokens": int(max_tokens.value) if max_tokens.value is not None else None,
                 "top_p": top_p.value,
                 "top_k": int(top_k.value) if top_k.value is not None else None,
-                "presence_penalty": presence_penalty.value,
-                "frequency_penalty": frequency_penalty.value
-            }, save_llm_button))
+                    "presence_penalty": presence_penalty.value,
+                    "frequency_penalty": frequency_penalty.value
+                },
+                save_llm_button
+            ))
 
-async def save_llm_config(config_data: dict, button_ref: ui.button):
+async def save_llm_config(client: Client, config_data: dict, button_ref: ui.button): # Added client
     original_button_text = button_ref.text
     button_ref.props("loading=true icon=none")
     button_ref.text = "Saving..."
@@ -961,45 +975,43 @@ async def save_llm_config(config_data: dict, button_ref: ui.button):
         # Update active minions with new settings
         if app_state.get("minions"):
             gui_log(f"Sending LLM config update to {len(app_state['minions'])} minions.", level="INFO")
-            # Consider running these in parallel if many minions
             tasks = [
-                send_a2a_message_to_minion(
-                    minion_id,
-                    "update_llm_config",
-                    {"new_config": config_data},
-                    "update LLM configuration"
+                send_a2a_message_to_minion( # This call needs client
+                    client=client,
+                    minion_id=minion_id,
+                    message_type="update_llm_config", # Corrected: message_type
+                    a2a_payload={"new_config": config_data}, # Corrected: a2a_payload
+                    notification_verb="update LLM configuration"
                 )
                 for minion_id in app_state["minions"]
             ]
             results = await asyncio.gather(*tasks, return_exceptions=True)
             
-            success_sends = sum(1 for r in results if r is True) # Assuming send_a2a_message_to_minion returns True on success
+            success_sends = sum(1 for r in results if r is True)
             failed_sends = len(results) - success_sends
             if failed_sends > 0:
                 gui_log(f"{failed_sends} errors while sending LLM config to minions.", level="WARNING")
-                ui.notify(f"LLM config saved. Errors sending to {failed_sends} minions. Check logs.", type="warning", multi_line=True)
+                client.notify(f"LLM config saved. Errors sending to {failed_sends} minions. Check logs.", type="warning", multi_line=True)
             elif success_sends > 0 :
-                 ui.notify(f"LLM configuration updated and sent to {success_sends} minions.", type="positive")
-            else: # No minions or all sends failed (but no specific error from gather)
-                 ui.notify("LLM configuration updated. No minions to send to or all sends failed.", type="info")
-
-        else:
+                 client.notify(f"LLM configuration updated and sent to {success_sends} minions.", type="positive")
+            else:
+                 client.notify("LLM configuration updated. No minions to send to or all sends failed.", type="info")
+        else: # This else belongs to 'if app_state.get("minions")' and should be inside the try block
             gui_log("No active minions to send LLM config update to.", level="INFO")
-            ui.notify("LLM configuration updated. No active minions to notify.", type="positive")
+            client.notify("LLM configuration updated. No active minions to notify.", type="positive")
             
     except Exception as e:
-        gui_log(f"Critical error in save_llm_config: {e}", level="ERROR") # Changed from "Error saving..."
-        ui.notify(f"An unexpected error occurred while saving LLM configuration: {e}", type="negative", multi_line=True)
+        gui_log(f"Critical error in save_llm_config: {e}", level="ERROR", exc_info=True) # Added exc_info
+        client.notify(f"An unexpected error occurred while saving LLM configuration: {e}", type="negative", multi_line=True)
     finally:
         button_ref.props("loading=false")
         button_ref.text = original_button_text
-        # Re-add icon if it was removed, assuming default button has no icon or managing it if it did.
-        # For "Save LLM Configuration", it likely has no icon by default.
+        # Re-add icon if it was removed
 
 # GUI-3.2: MCP Tool Management Interface
 _tool_management_tools_container_ref = None # To hold the ui.element for refreshing
 
-def create_tool_management_ui():
+def create_tool_management_ui(client: Client): # Added client
     global _tool_management_tools_container_ref
     with ui.card().classes('w-full q-mb-md'):
         with ui.card_section():
@@ -1009,28 +1021,22 @@ def create_tool_management_ui():
         _tool_management_tools_container_ref = ui.card_section().classes('q-pt-none') # No top padding
         
         with ui.card_actions().classes('justify-start q-gutter-sm'): # Actions at the bottom
-            ui.button("Refresh Available Tools", icon="refresh", on_click=lambda: fetch_available_tools(_tool_management_tools_container_ref)).props('outline')
-            ui.button("Add New Tool", icon="add", on_click=open_add_tool_dialog, color="primary")
+            ui.button("Refresh Available Tools", icon="refresh", on_click=lambda: fetch_available_tools(client, _tool_management_tools_container_ref)).props('outline') # Pass client
+            ui.button("Add New Tool", icon="add", on_click=lambda: open_add_tool_dialog(client), color="primary") # Pass client
     
-    # Initial fetch
-    # Need to ensure _tool_management_tools_container_ref is valid when fetch is called.
-    # ui.timer(0.1, lambda: fetch_available_tools(_tool_management_tools_container_ref), once=True)
-    # Or call directly if the element is already created.
-    # For now, let's assume it's okay to call if the container is created just before.
-    # The spec calls it directly.
     if _tool_management_tools_container_ref:
-         fetch_available_tools(_tool_management_tools_container_ref) # Call initial fetch
+         fetch_available_tools(client, _tool_management_tools_container_ref) # Call initial fetch, pass client
     else:
         gui_log("Tool management container not ready for initial fetch.", level="WARNING")
 
 
-async def fetch_available_tools(container: ui.element):
+async def fetch_available_tools(client: Client, container: ui.element): # Added client
     if not container:
         gui_log("fetch_available_tools called with no container.", level="ERROR")
-        ui.notify("UI error: Tool display container not found.", type="negative")
+        client.notify("UI error: Tool display container not found.", type="negative") # Use client.notify
         return
     
-    container.clear() # Clear previous content first
+    container.clear()
     with container: # Show spinner
         ui.spinner(size='lg').classes('self-center q-my-md') # Centered spinner
     
@@ -1103,30 +1109,30 @@ async def fetch_available_tools(container: ui.element):
                     error_message = f"Failed to parse tool data: {e}"
                     gui_log(f"Error in fetch_available_tools (JSONDecodeError): {error_message}", level="ERROR")
                     ui.label(error_message).classes("text-negative q-pa-md")
-                    ui.notify(f"Error parsing tool data from MCP service: {e}", type="negative", multi_line=True)
+                    client.notify(f"Error parsing tool data from MCP service: {e}", type="negative", multi_line=True) # Use client.notify
             else:
                 error_message = f"Error fetching tools: {response.status_code} - {response.reason}"
                 gui_log(f"Failed to fetch MCP tools from {list_tools_url}. Status: {response.status_code}, Response: {response.text[:200]}", level="ERROR")
                 ui.label(error_message).classes('text-red q-pa-md')
-                ui.notify(error_message, type="negative", multi_line=True)
+                client.notify(error_message, type="negative", multi_line=True) # Use client.notify
 
-    except requests.exceptions.RequestException as e: # Catches ConnectionError, Timeout, etc.
-        container.clear() # Clear spinner if network error occurred
+    except requests.exceptions.RequestException as e:
+        container.clear()
         with container:
             error_message = f"Network error fetching tools: {e}"
             gui_log(f"Error in fetch_available_tools (RequestException): {error_message}", level="ERROR")
             ui.label(error_message).classes('text-red q-pa-md')
-            ui.notify(f"Could not connect to MCP service: {e}", type="negative", multi_line=True)
+            client.notify(f"Could not connect to MCP service: {e}", type="negative", multi_line=True) # Use client.notify
             
-    except Exception as e: # Catch-all for other unexpected errors
-        container.clear() # Clear spinner
+    except Exception as e:
+        container.clear()
         with container:
             error_message = f"An unexpected error occurred: {e}"
             gui_log(f"Error in fetch_available_tools (Exception): {error_message}", level="CRITICAL")
             ui.label(error_message).classes('text-red q-pa-md')
-            ui.notify(f"An unexpected error occurred while fetching tools: {e}", type="negative", multi_line=True)
+            client.notify(f"An unexpected error occurred while fetching tools: {e}", type="negative", multi_line=True) # Use client.notify
 
-def open_add_tool_dialog():
+def open_add_tool_dialog(client: Client): # Added client
     with ui.dialog() as dialog, ui.card().classes('min-w-[700px] max-w-[90vw]'):
         ui.label("Add New MCP Tool").classes('text-h6 q-mb-md')
         
@@ -1174,20 +1180,20 @@ def open_add_tool_dialog():
                             tool_payload["parameters_schema"] = json.loads(form_data['params_template'].value)
                         except json.JSONDecodeError as e:
                             gui_log(f"Error in open_add_tool_dialog (JSONDecodeError for params): {e}", level="ERROR")
-                            ui.notify(f"Invalid JSON in Parameters Template: {e}", type="negative", multi_line=True)
+                            client.notify(f"Invalid JSON in Parameters Template: {e}", type="negative", multi_line=True) # Use client.notify
                             return
                     
                     if not all([tool_payload["tool_name"], tool_payload["server_name"], tool_payload["server_url"]]):
-                        ui.notify("Tool Name, Server Name, and Server URL are required.", type="negative")
+                        client.notify("Tool Name, Server Name, and Server URL are required.", type="negative") # Use client.notify
                         return
 
-                    await add_new_tool(tool_payload, add_tool_button) # Pass button_ref
+                    await add_new_tool(client, tool_payload, add_tool_button) # Pass client & button_ref
                     dialog.close()
                 
                 add_tool_button.on('click', submit_form_wrapper)
     dialog.open()
 
-async def add_new_tool(tool_data: dict, button_ref: ui.button):
+async def add_new_tool(client: Client, tool_data: dict, button_ref: ui.button): # Added client
     original_button_text = button_ref.text
     button_ref.props("loading=true icon=none")
     button_ref.text = "Adding..."
@@ -1199,10 +1205,10 @@ async def add_new_tool(tool_data: dict, button_ref: ui.button):
     try:
         response = await asyncio.to_thread(requests.post, add_tool_url, json=tool_data, timeout=15)
         if response.status_code == 200 or response.status_code == 201:
-            ui.notify(f"Tool '{tool_data.get('tool_name')}' added successfully!", type="positive")
+            client.notify(f"Tool '{tool_data.get('tool_name')}' added successfully!", type="positive") # Use client.notify
             gui_log(f"Tool '{tool_data.get('tool_name')}' added. Response: {response.text[:200]}", level="INFO")
             if _tool_management_tools_container_ref:
-                await fetch_available_tools(_tool_management_tools_container_ref)
+                await fetch_available_tools(client, _tool_management_tools_container_ref) # Pass client
             else:
                 gui_log("Tool management container ref not found for refresh after add.", level="WARNING")
         else:
@@ -1216,17 +1222,17 @@ async def add_new_tool(tool_data: dict, button_ref: ui.button):
                 error_detail = f"{error_detail} - {response.text[:100]}"
             
             user_friendly_message = f"Failed to add tool '{tool_data.get('tool_name')}': {error_detail}"
-            ui.notify(user_friendly_message, type="negative", multi_line=True)
+            client.notify(user_friendly_message, type="negative", multi_line=True) # Use client.notify
             gui_log(f"Error in add_new_tool: {user_friendly_message}. URL: {add_tool_url}, Status: {response.status_code}, Full Response: {response.text[:200]}", level="ERROR")
     
     except requests.exceptions.RequestException as e:
         error_message = f"Network error adding tool: {e}"
         gui_log(f"Error in add_new_tool (RequestException): {error_message}", level="ERROR")
-        ui.notify(f"Error connecting to MCP service to add tool: {e}", type="negative", multi_line=True)
+        client.notify(f"Error connecting to MCP service to add tool: {e}", type="negative", multi_line=True) # Use client.notify
     except Exception as e:
         error_message = f"An unexpected error occurred: {e}"
         gui_log(f"Error in add_new_tool (Exception): {error_message}", level="CRITICAL")
-        ui.notify(f"An unexpected error occurred while adding tool: {e}", type="negative", multi_line=True)
+        client.notify(f"An unexpected error occurred while adding tool: {e}", type="negative", multi_line=True) # Use client.notify
     finally:
         button_ref.props("loading=false")
         button_ref.text = original_button_text
@@ -1242,7 +1248,7 @@ chat_log_area = None # Will be defined in main_page for the chat log
 minion_filter_input = None # Will be defined in main_page for filtering
 status_label = None # Will be defined in main_page and used by timers
 
-def update_minion_display():
+def update_minion_display(client: Optional[Client] = None): # Added client, optional for timer calls
     if not minion_cards_container:
         gui_log("update_minion_display called but minion_cards_container is not initialized.", level="WARNING")
         return
@@ -1462,67 +1468,66 @@ def update_minion_display():
                         
                         # Add Process Control Buttons
                         with ui.row().classes('q-gutter-sm q-mt-xs'):
-                            if current_status in ["Running", "Idle", "Unknown"]: # Assuming "Unknown" might be pausable
-                                ui.button("Pause", on_click=lambda mid=agent_id_key: handle_pause_minion(mid), color='orange').props('dense')
+                            if current_status in ["Running", "Idle", "Unknown"]:
+                                ui.button("Pause", on_click=lambda mid=agent_id_key, c=client: handle_pause_minion(c, mid) if c else gui_log("Pause: Client context not available for notification", "WARNING"), color='orange').props('dense')
                             elif current_status == "Paused":
-                                ui.button("Resume", on_click=lambda mid=agent_id_key: handle_resume_minion(mid), color='green').props('dense')
-                                ui.button("Send Msg", on_click=lambda mid=agent_id_key: open_send_message_to_paused_dialog(mid), color='blue').props('dense')
+                                ui.button("Resume", on_click=lambda mid=agent_id_key, c=client: handle_resume_minion(c, mid) if c else gui_log("Resume: Client context not available for notification", "WARNING"), color='green').props('dense')
+                                ui.button("Send Msg", on_click=lambda mid=agent_id_key, c=client: open_send_message_to_paused_dialog(c, mid) if c else gui_log("SendMsgDialog: Client context not available", "WARNING"), color='blue').props('dense')
                             elif current_status in ["Pausing...", "Resuming..."]:
-                                ui.spinner(size='sm').classes('q-ml-md') # Show a spinner if transitioning
+                                ui.spinner(size='sm').classes('q-ml-md')
                         
                         # Minion Actions Row (Details, Personality, Debug)
                         with ui.row().classes('q-gutter-sm q-mt-sm w-full justify-start'):
                             ui.button("Chat", icon="chat", on_click=lambda mid=agent_id_key: start_chat_session(session_type="individual", agent_ids_input=mid)).props('dense outline color=primary')
                             ui.button("View Details", on_click=lambda mid=agent_id_key: show_minion_details(mid)).props('dense outline')
-                            ui.button("Personality", icon="face_retouching_natural", on_click=lambda mid=agent_id_key: open_personality_dialog(mid)).props('dense outline')
+                            ui.button("Personality", icon="face_retouching_natural", on_click=lambda mid=agent_id_key, c=client: open_personality_dialog(c, mid) if c else gui_log("PersonalityDialog: Client context missing", "WARNING")).props('dense outline')
                             ui.button("Debug", icon="bug_report", on_click=lambda mid=agent_id_key: show_minion_details(mid)).props('dense outline') # Debug also navigates to detail page
 
     gui_log("Minion display updated with process control, chat, and action buttons.")
 
 
 # --- Process Control Action Handlers (Placeholder implementations) ---
-async def handle_pause_minion(minion_id: str):
+async def handle_pause_minion(client: Optional[Client], minion_id: str):
     gui_log(f"GUI: Initiating PAUSE for minion: {minion_id}")
     payload = {
-        "message_type": "control_pause_request", # This is the A2A message type
-        "target_minion_id": minion_id, # Explicitly target
-        # Minimal payload as per design doc, actual content might be just routing info for A2A server
+        "message_type": "control_pause_request",
+        "target_minion_id": minion_id,
     }
-    success = await send_a2a_message_to_minion(minion_id, "control_pause_request", payload, notification_verb="pause minion")
+    # Client might be None if called from a timer context indirectly
+    success = await send_a2a_message_to_minion(client, minion_id, "control_pause_request", payload, notification_verb="pause minion") if client else \
+              await send_a2a_message_to_minion(app.get_client(), minion_id, "control_pause_request", payload, notification_verb="pause minion") # Fallback for timer
     if success:
-        # Optimistically update status, will be confirmed by ack or state_update
         if minion_id in app_state["minions"]:
             app_state["minions"][minion_id]["status"] = "Pausing..."
-            update_minion_display()
+            update_minion_display(client) # Pass client if available
 
-async def handle_resume_minion(minion_id: str):
+async def handle_resume_minion(client: Optional[Client], minion_id: str):
     gui_log(f"GUI: Initiating RESUME for minion: {minion_id}")
     payload = {
         "message_type": "control_resume_request",
         "target_minion_id": minion_id,
     }
-    success = await send_a2a_message_to_minion(minion_id, "control_resume_request", payload, notification_verb="resume minion")
+    success = await send_a2a_message_to_minion(client, minion_id, "control_resume_request", payload, notification_verb="resume minion") if client else \
+              await send_a2a_message_to_minion(app.get_client(), minion_id, "control_resume_request", payload, notification_verb="resume minion") # Fallback
     if success:
         if minion_id in app_state["minions"]:
             app_state["minions"][minion_id]["status"] = "Resuming..."
-            update_minion_display()
+            update_minion_display(client) # Pass client if available
 
-async def handle_send_message_to_paused_minion(minion_id: str, message_text: str):
+async def handle_send_message_to_paused_minion(client: Client, minion_id: str, message_text: str): # Client is required here
     gui_log(f"GUI: Sending message to PAUSED minion {minion_id}: {message_text[:50]}...")
     if not message_text.strip():
-        ui.notify("Message content cannot be empty.", type='warning')
+        client.notify("Message content cannot be empty.", type='warning')
         return
 
     payload = {
         "message_type": "message_to_paused_minion_request",
-        "target_minion_id": minion_id, # Ensure target_minion_id is part of the payload if needed by A2A server/minion logic
+        "target_minion_id": minion_id,
         "message_content": message_text,
-        # "timestamp" will be added by send_a2a_message_to_minion helper
     }
-    await send_a2a_message_to_minion(minion_id, "message_to_paused_minion_request", payload, notification_verb="send message to paused minion")
-    # Confirmation is handled by send_a2a_message_to_minion or ack
+    await send_a2a_message_to_minion(client, minion_id, "message_to_paused_minion_request", payload, notification_verb="send message to paused minion")
 
-def open_send_message_to_paused_dialog(minion_id: str):
+def open_send_message_to_paused_dialog(client: Optional[Client], minion_id: str): # Made client optional for safety, but dialog needs it
     minion_display_name = get_formatted_minion_display(minion_id)
     with ui.dialog() as dialog, ui.card().classes('min-w-[500px]'):
         ui.label(f"Send Message to Paused Minion: {minion_display_name}").classes('text-h6')
@@ -1530,7 +1535,7 @@ def open_send_message_to_paused_dialog(minion_id: str):
         with ui.row().classes('justify-end w-full q-mt-md'):
             ui.button("Cancel", on_click=dialog.close, color='grey').props('flat')
             ui.button("Send", on_click=lambda: (
-                handle_send_message_to_paused_minion(minion_id, message_input.value),
+                handle_send_message_to_paused_minion(client, minion_id, message_input.value) if client else gui_log("SendPausedMsg: Client context missing", "ERROR"),
                 dialog.close()
             )).props('color=primary')
     dialog.open()
@@ -1549,10 +1554,10 @@ def open_rename_dialog(minion_id: str, current_name: str):
 
 # --- Minion Personality Customization UI (GUI-3.3) ---
 
-async def update_minion_personality(minion_id: str, personality_traits: str, button_ref: ui.button):
+async def update_minion_personality(client: Client, minion_id: str, personality_traits: str, button_ref: ui.button): # Added client
     """
     Updates the specified minion's personality traits via A2A message.
-    Manages button loading state.
+    Manages button loading state. Requires client context.
     """
     original_button_text = button_ref.text
     button_ref.props("loading=true icon=none")
@@ -1567,9 +1572,10 @@ async def update_minion_personality(minion_id: str, personality_traits: str, but
 
     try:
         success = await send_a2a_message_to_minion(
-            minion_id,
-            "update_personality",
-            payload,
+            client=client, # Pass client
+            minion_id=minion_id,
+            message_type="update_personality",
+            a2a_payload=payload,
             notification_verb=f"update personality for {minion_display_name}"
         )
 
@@ -1578,33 +1584,31 @@ async def update_minion_personality(minion_id: str, personality_traits: str, but
                 app_state["minions"][minion_id]["personality"] = personality_traits
                 gui_log(f"Successfully updated personality in app_state for {minion_id}.")
                 if minion_cards_container:
-                    update_minion_display()
+                    update_minion_display(client) # Pass client
                 else:
                     gui_log("minion_cards_container not defined, skipping display update.", level="WARNING")
-                ui.notify(f"Personality for {minion_display_name} updated successfully.", type='positive')
+                client.notify(f"Personality for {minion_display_name} updated successfully.", type='positive')
             else:
                 gui_log(f"Minion {minion_id} not found in app_state after successful A2A, cannot update local state.", level="WARNING")
-                ui.notify(f"Personality update sent for {minion_display_name}, but local display might be out of sync.", type='warning')
-        # else:
-            # send_a2a_message_to_minion already handles negative notification for send failure.
-            # gui_log(f"Failed to send personality update request for {minion_id} (send_a2a_message_to_minion returned False).", level="ERROR")
-            # ui.notify(f"Failed to apply personality changes for {minion_display_name}.", type='negative') # This would be redundant
+                client.notify(f"Personality update sent for {minion_display_name}, but local display might be out of sync.", type='warning')
     except Exception as e:
         gui_log(f"Error in update_minion_personality for {minion_id}: {e}", level="ERROR")
-        ui.notify(f"An unexpected error occurred while updating personality for {minion_display_name}: {e}", type="negative", multi_line=True)
+        client.notify(f"An unexpected error occurred while updating personality for {minion_display_name}: {e}", type="negative", multi_line=True)
     finally:
         button_ref.props("loading=false")
         button_ref.text = original_button_text
-        # Assuming no icon was present on this button initially.
 
-def open_personality_dialog(minion_id: str):
+def open_personality_dialog(client: Optional[Client], minion_id: str): # Added client, optional for safety
     """
     Opens a dialog to customize the personality of a given minion.
     """
     minion_data = app_state.get("minions", {}).get(minion_id)
     if not minion_data:
-        ui.notify(f"Minion {minion_id} not found.", type='negative')
-        gui_log(f"open_personality_dialog: Minion {minion_id} not found in app_state.", level="ERROR")
+        if client:
+            client.notify(f"Minion {minion_id} not found.", type='negative')
+        else: # Should not happen if called from UI with client
+            gui_log(f"open_personality_dialog: Minion {minion_id} not found (no client context for notify).", level="ERROR")
+        gui_log(f"open_personality_dialog: Minion {minion_id} not found in app_state.", level="ERROR") # Log anyway
         return
 
     minion_name = get_formatted_minion_display(minion_id)
@@ -1644,20 +1648,31 @@ def open_personality_dialog(minion_id: str):
         with ui.row().classes('justify-end w-full q-mt-lg'):
             ui.button("Cancel", on_click=dialog.close, color='grey').props('flat')
             apply_button = ui.button("Apply Personality").props('color=primary')
-            apply_button.on('click', lambda: (
-                update_minion_personality(minion_id, personality_textarea.value, apply_button),
-                dialog.close() # Consider closing dialog only on success or add explicit close button
-            ))
+            def apply_action():
+                if client:
+                    update_minion_personality(client, minion_id, personality_textarea.value, apply_button)
+                    dialog.close()
+                else:
+                    gui_log("ApplyPersonality: Client context missing.", "ERROR")
+                    # Potentially notify via a global mechanism if possible, or just log
+                    # This case should ideally not be hit if called from UI correctly
+                    try:
+                        ui.notify("Error: Cannot apply personality, client context lost.", type="negative")
+                    except Exception as e_notify:
+                        gui_log(f"Failed to show global notify in apply_action for personality: {e_notify}", "ERROR")
+
+
+            apply_button.on('click', apply_action)
 
     dialog.open()
 
 # --- Minion Debugging Interface UI (GUI-3.4) ---
 
-async def fetch_minion_debug_data(minion_id: str, data_type: str, container: ui.element):
+async def fetch_minion_debug_data(client: Client, minion_id: str, data_type: str, container: ui.element):
     """
     Generic helper to request debug data from a minion and update a UI container.
     `data_type` corresponds to the A2A message (e.g., 'debug_get_state', 'debug_get_conversation_history').
-    Manages loading state within the container.
+    Manages loading state within the container. Requires client context.
     """
     minion_name = get_formatted_minion_display(minion_id)
     data_type_display = data_type.replace('debug_get_', '').replace('_', ' ')
@@ -1675,14 +1690,15 @@ async def fetch_minion_debug_data(minion_id: str, data_type: str, container: ui.
     success = False # Initialize success flag
     try:
         success = await send_a2a_message_to_minion(
-            minion_id,
-            data_type,
-            payload,
+            client=client, # Pass client
+            minion_id=minion_id,
+            message_type=data_type,
+            a2a_payload=payload,
             notification_verb=f"request {data_type_display} for {minion_name}"
         )
     except Exception as e:
         gui_log(f"Error during A2A call in fetch_minion_debug_data for {data_type} of {minion_id}: {e}", level="ERROR")
-        ui.notify(f"An error occurred while requesting {data_type_display} for {minion_name}: {e}", type="negative", multi_line=True)
+        client.notify(f"An error occurred while requesting {data_type_display} for {minion_name}: {e}", type="negative", multi_line=True)
         # Success remains False
     finally:
         container.clear() # Clear spinner and "Fetching..." message
@@ -1717,27 +1733,27 @@ async def fetch_minion_debug_data(minion_id: str, data_type: str, container: ui.
                 # So, this specific message might be redundant if send_a2a_message_to_minion is robust.
                 # However, it's a good fallback if the request initiation itself failed silently before send_a2a.
                 ui.label(f"Failed to send request for {data_type_display}. Check logs for details.").classes('text-red')
-                # ui.notify is handled by send_a2a_message_to_minion or the except block here.
+                # client.notify is handled by send_a2a_message_to_minion or the except block here.
 
 # Specific fetch functions calling the generic helper
-async def fetch_minion_state(minion_id: str, container: ui.element):
-    await fetch_minion_debug_data(minion_id, "debug_get_state", container)
+async def fetch_minion_state(client: Client, minion_id: str, container: ui.element):
+    await fetch_minion_debug_data(client, minion_id, "debug_get_state", container)
 
-async def fetch_minion_conversation(minion_id: str, container: ui.element):
-    await fetch_minion_debug_data(minion_id, "debug_get_conversation_history", container)
+async def fetch_minion_conversation(client: Client, minion_id: str, container: ui.element):
+    await fetch_minion_debug_data(client, minion_id, "debug_get_conversation_history", container)
 
-async def fetch_minion_task_queue(minion_id: str, container: ui.element):
-    await fetch_minion_debug_data(minion_id, "debug_get_task_queue", container)
+async def fetch_minion_task_queue(client: Client, minion_id: str, container: ui.element):
+    await fetch_minion_debug_data(client, minion_id, "debug_get_task_queue", container)
 
-async def fetch_minion_logs(minion_id: str, container: ui.element):
+async def fetch_minion_logs(client: Client, minion_id: str, container: ui.element):
     # For logs, we might want to specify parameters like 'lines' or 'since_timestamp' in payload
-    await fetch_minion_debug_data(minion_id, "debug_get_logs", container)
+    await fetch_minion_debug_data(client, minion_id, "debug_get_logs", container)
 
-async def fetch_minion_performance(minion_id: str, container: ui.element):
-    await fetch_minion_debug_data(minion_id, "debug_get_performance_metrics", container)
+async def fetch_minion_performance(client: Client, minion_id: str, container: ui.element):
+    await fetch_minion_debug_data(client, minion_id, "debug_get_performance_metrics", container)
 
 
-def create_debug_console_ui(minion_id: str):
+def create_debug_console_ui(client: Client, minion_id: str): # Added client
     """
     Creates the UI for the minion debug console.
     This function itself doesn't return a NiceGUI element directly to be embedded,
@@ -1773,35 +1789,35 @@ def create_debug_console_ui(minion_id: str):
             with ui.tab_panel(tab_internal_state):
                 ui.label("Minion Internal State").classes('text-subtitle1 q-mb-sm')
                 state_container = ui.column().classes('w-full q-gutter-y-sm')
-                ui.button("Fetch/Refresh State", icon="refresh", on_click=lambda: fetch_minion_state(minion_id, state_container)).props('outline dense')
+                ui.button("Fetch/Refresh State", icon="refresh", on_click=lambda: fetch_minion_state(client, minion_id, state_container)).props('outline dense')
                 with state_container:
                      ui.label("Click 'Fetch/Refresh State' to load data.").classes('text-italic')
             
             with ui.tab_panel(tab_conversation_history):
                 ui.label("Minion Conversation History").classes('text-subtitle1 q-mb-sm')
                 conversation_container = ui.column().classes('w-full q-gutter-y-sm')
-                ui.button("Fetch/Refresh History", icon="refresh", on_click=lambda: fetch_minion_conversation(minion_id, conversation_container)).props('outline dense')
+                ui.button("Fetch/Refresh History", icon="refresh", on_click=lambda: fetch_minion_conversation(client, minion_id, conversation_container)).props('outline dense')
                 with conversation_container:
                     ui.label("Click 'Fetch/Refresh History' to load data.").classes('text-italic')
 
             with ui.tab_panel(tab_task_queue):
                 ui.label("Minion Task Queue").classes('text-subtitle1 q-mb-sm')
                 task_queue_container = ui.column().classes('w-full q-gutter-y-sm')
-                ui.button("Fetch/Refresh Queue", icon="refresh", on_click=lambda: fetch_minion_task_queue(minion_id, task_queue_container)).props('outline dense')
+                ui.button("Fetch/Refresh Queue", icon="refresh", on_click=lambda: fetch_minion_task_queue(client, minion_id, task_queue_container)).props('outline dense')
                 with task_queue_container:
                     ui.label("Click 'Fetch/Refresh Queue' to load data.").classes('text-italic')
 
             with ui.tab_panel(tab_log_viewer):
                 ui.label("Minion Log Viewer").classes('text-subtitle1 q-mb-sm')
                 logs_container = ui.column().classes('w-full q-gutter-y-sm')
-                ui.button("Fetch/Refresh Logs", icon="refresh", on_click=lambda: fetch_minion_logs(minion_id, logs_container)).props('outline dense')
+                ui.button("Fetch/Refresh Logs", icon="refresh", on_click=lambda: fetch_minion_logs(client, minion_id, logs_container)).props('outline dense')
                 with logs_container:
                     ui.label("Click 'Fetch/Refresh Logs' to load data.").classes('text-italic')
 
             with ui.tab_panel(tab_performance_metrics):
                 ui.label("Minion Performance Metrics").classes('text-subtitle1 q-mb-sm')
                 performance_container = ui.column().classes('w-full q-gutter-y-sm')
-                ui.button("Fetch/Refresh Metrics", icon="refresh", on_click=lambda: fetch_minion_performance(minion_id, performance_container)).props('outline dense')
+                ui.button("Fetch/Refresh Metrics", icon="refresh", on_click=lambda: fetch_minion_performance(client, minion_id, performance_container)).props('outline dense')
                 with performance_container:
                     ui.label("Click 'Fetch/Refresh Metrics' to load data.").classes('text-italic')
     
@@ -2306,25 +2322,25 @@ async def chat_session_page(client: Client, session_id: str):
 
 # --- Collaborative Task Creation (GUI-2.2) ---
 
-async def handle_collaborative_task_submission(task_description_str: str, coordinator_id: str, submit_button_ref: ui.button):
+async def handle_collaborative_task_submission(client: Client, task_description_str: str, coordinator_id: str, submit_button_ref: ui.button):
     """
     Handles the form submission for creating a new collaborative task.
     Sends an A2A message to the selected coordinator.
-    Includes error handling, user feedback, and loading indicators.
+    Includes error handling, user feedback, and loading indicators. Requires client context.
     """
     gui_log(f"Attempting to submit collaborative task. Description: '{task_description_str[:50]}...', Coordinator: {coordinator_id}", level="INFO")
 
     if not task_description_str or not task_description_str.strip():
-        ui.notify("Task Description cannot be empty.", type="negative")
+        client.notify("Task Description cannot be empty.", type="negative")
         gui_log("Collaborative task submission failed: Task Description was empty.", level="WARNING")
         return
 
     if not coordinator_id:
-        ui.notify("Coordinator Minion must be selected.", type="negative")
+        client.notify("Coordinator Minion must be selected.", type="negative")
         gui_log("Collaborative task submission failed: Coordinator Minion not selected.", level="WARNING")
         return
 
-    original_button_text = submit_button_ref.text # Assuming default is "Submit Collaborative Task"
+    original_button_text = submit_button_ref.text
     submit_button_ref.props("loading=true icon=none")
     submit_button_ref.text = "Submitting..."
 
@@ -2335,6 +2351,7 @@ async def handle_collaborative_task_submission(task_description_str: str, coordi
         }
 
         success = await send_a2a_message_to_minion(
+            client=client, # Pass client
             minion_id=coordinator_id,
             message_type="collaborative_task_request",
             a2a_payload=payload,
@@ -2342,22 +2359,18 @@ async def handle_collaborative_task_submission(task_description_str: str, coordi
         )
 
         if success:
-            ui.notify("Collaborative task submitted successfully.", type="positive")
+            client.notify("Collaborative task submitted successfully.", type="positive")
             gui_log(f"Collaborative task request successfully sent to coordinator {coordinator_id}.", level="INFO")
-            # Optionally clear form fields here if needed, e.g., task_description_textarea.value = ""
-        # else:
-            # send_a2a_message_to_minion handles its own notification for send failure.
-            # gui_log(f"Failed to send collaborative task request to coordinator {coordinator_id} (send_a2a_message_to_minion returned False).", level="WARNING")
-
+            # Optionally clear form fields here if needed
     except Exception as e:
         gui_log(f"Error in handle_collaborative_task_submission: {e}", level="ERROR")
-        ui.notify(f"Failed to submit task: {e}", type="negative")
+        client.notify(f"Failed to submit task: {e}", type="negative")
     finally:
         submit_button_ref.props("loading=false")
-        submit_button_ref.text = original_button_text # Restore original text
+        submit_button_ref.text = original_button_text
 
 
-def create_collaborative_task_ui():
+def create_collaborative_task_ui(client: Client): # Added client
     """
     Renders the UI elements for the collaborative task definition form.
     This function should be called within the collaborative_tasks_page.
@@ -2417,22 +2430,23 @@ def create_collaborative_task_ui():
 
             async def submit_action():
                 if coordinator_select is not None and coordinator_select.value:
-                    # Pass the button reference to the handler
+                    # Pass the button reference and client to the handler
                     await handle_collaborative_task_submission(
+                        client, # Pass client
                         task_description_textarea.value,
                         coordinator_select.value,
-                        submit_button # Pass the button instance
+                        submit_button
                     )
-                elif coordinator_select is None and not minions_with_coordination_skill: # No coordinators were available at all
-                     ui.notify("Cannot submit: No coordinator minions available with the required skill.", type="negative")
-                else: # Coordinators were available, but none selected, or coordinator_select is None due to error
-                     ui.notify("Please select a coordinator minion.", type="negative")
+                elif coordinator_select is None and not minions_with_coordination_skill:
+                     client.notify("Cannot submit: No coordinator minions available with the required skill.", type="negative")
+                else:
+                     client.notify("Please select a coordinator minion.", type="negative")
             
             submit_button.on('click', submit_action)
 
 
 @ui.page('/collaborative-tasks')
-async def collaborative_tasks_page(client: Client):
+async def collaborative_tasks_page(client: Client): # Client is already a parameter here
     """
     Page for managing and creating collaborative tasks.
     Currently, it only includes the UI for creating new tasks.
@@ -2446,8 +2460,8 @@ async def collaborative_tasks_page(client: Client):
 
     # Main content area for the page
     with ui.column().classes('q-pa-md items-stretch w-full'):
-        # Call the function to create the task definition UI
-        create_collaborative_task_ui()
+        # Call the function to create the task definition UI, passing client
+        create_collaborative_task_ui(client)
 
         # Placeholder for displaying existing collaborative tasks (GUI-2.3 / GUI-2.4)
         with ui.card().classes('w-full q-mt-lg'):
@@ -2798,7 +2812,7 @@ async def minion_detail_page(client: Client, minion_id: str):
                     with ui.card_section():
                         ui.label("Debug Console").classes('text-subtitle1 font-bold')
                     with ui.card_section():
-                        create_debug_console_ui(minion_id) # This function renders its own content
+                        create_debug_console_ui(client, minion_id) # Pass client
 
     _render_minion_details() # Initial render
 
@@ -2975,7 +2989,7 @@ async def main_page(client: Client):
                 ui.label("Minion Command & Control").classes('text-h6')
             with ui.card_section():
                 command_input = ui.textarea(label="Broadcast Directive to All Minions", placeholder="e.g., Initiate icebreaker protocols. Introduce yourselves to each other. Define initial roles.").props('outlined autogrow')
-                ui.button("Broadcast Directive", on_click=lambda: broadcast_message_to_all_minions(command_input.value)).classes('q-mt-sm')
+                ui.button("Broadcast Directive", on_click=lambda: broadcast_message_to_all_minions(client, command_input.value)).classes('q-mt-sm') # Pass client
                 last_broadcast_label = ui.label("Last Broadcast: None").classes('text-caption q-mt-xs')
             broadcast_status_area = ui.card_section().classes('q-gutter-xs') # For individual send statuses
 
@@ -2999,7 +3013,7 @@ async def main_page(client: Client):
                         ui.button(icon='add_circle_outline', on_click=open_spawn_minion_dialog, color='positive').props('flat dense').tooltip("Spawn New Minion")
                         ui.button(icon='refresh', on_click=fetch_registered_minions).props('flat dense').tooltip("Refresh Minion List (clears filter if active)")
                 
-                minion_filter_input = ui.input(placeholder="Filter minions by name, ID, capability...", on_change=update_minion_display) \
+                minion_filter_input = ui.input(placeholder="Filter minions by name, ID, capability...", on_change=lambda e, c=client: update_minion_display(client=c)) \
                     .props('dense outlined clearable').classes('w-full q-mt-sm') \
                     .tooltip("Enter text to filter minions by name, ID, description, personality, or any capability detail.")
 
@@ -3053,8 +3067,8 @@ async def system_configuration_page(client: Client):
     with ui.column().classes('q-pa-md items-stretch w-full'):
         ui.label("Manage system-wide settings for LLMs and MCP Tools.").classes('text-subtitle1 q-mb-md text-grey-8')
         
-        create_model_config_ui() # Defined from previous (applied) diff
-        create_tool_management_ui() # Defined from previous (applied) diff
+        create_model_config_ui(client) # Pass client
+        create_tool_management_ui(client) # Pass client here too, as it calls fetch_available_tools which might use notify
 
         ui.element('div').classes('q-mt-xl') # Spacer
 

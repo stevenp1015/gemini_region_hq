@@ -1,7 +1,7 @@
 {
   "component": "Minion_Charlie",
-  "timestamp": 1746997795.060022,
-  "uptime_seconds": 150.01262021064758,
+  "timestamp": 1746998245.076928,
+  "uptime_seconds": 600.0295259952545,
   "counters": {},
   "gauges": {
     "is_paused": 0,

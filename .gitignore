@@ -12,6 +12,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+logs/
 # package-lock.json # Decided to comment this out for now, as the user has one in mcp_servers/computer_use_mcp/
 # If mcp_servers/computer_use_mcp/package-lock.json is critical, we might need to adjust.
 
@@ -23,3 +24,9 @@ yarn-error.log*
 # IDE/Editor specific (examples)
 .vscode/
 .idea/
+logs/management_gui.log
+logs/management_gui.log
+logs/a2a_server_main.log
+logs/a2a_server_runner.log
+logs/management_gui_main.log
+logs/management_gui.log

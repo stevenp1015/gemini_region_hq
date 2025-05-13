@@ -3,30 +3,27 @@
 
 # Python
 venv_legion/
-*.pyc
+.venv/
 __pycache__/
+*.pyc
 *.egg-info/
 
-# Node.js (often found in JS/TS projects like computer_use_mcp)
-node_modules/
+# Node.js
+# If node_modules is at the root, 'node_modules/' is fine.
+# If it can appear in subdirectories (like inside computer_use_mcp), use '**/node_modules/'
+**/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-logs/
-# package-lock.json # Decided to comment this out for now, as the user has one in mcp_servers/computer_use_mcp/
-# If mcp_servers/computer_use_mcp/package-lock.json is critical, we might need to adjust.
+# package-lock.json # Keep commented if you INTEND to track package-lock.json files.
+                  # If you want to ignore one specifically: mcp_servers/computer_use_mcp/package-lock.json
+                  # If you want to ignore ALL (less common for committed code): **/package-lock.json
 
 # General
 .env
-.venv/
 .roomodes
+logs/ # This correctly ignores the top-level 'logs' directory and all its contents
 
-# IDE/Editor specific (examples)
+# IDE/Editor specific
 .vscode/
 .idea/
-logs/management_gui.log
-logs/management_gui.log
-logs/a2a_server_main.log
-logs/a2a_server_runner.log
-logs/management_gui_main.log
-logs/management_gui.log

@@ -15,7 +15,7 @@ __pycache__/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-# package-lock.json # Keep commented if you INTEND to track package-lock.json files.
+# package-lock.json # Keep commented if you bitch INTEND to track package-lock.json files.
                   # If you want to ignore one specifically: mcp_servers/computer_use_mcp/package-lock.json
                   # If you want to ignore ALL (less common for committed code): **/package-lock.json
 

@@ -1,0 +1,42 @@
+.chat-message {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 15px;
+  max-width: 70%;
+  clear: both; /* Ensure messages don't overlap weirdly if floats were used */
+  word-wrap: break-word; /* Prevent long words from overflowing */
+}
+
+.other-message {
+  background-color: #e9ecef; /* Light grey for other users */
+  color: #333;
+  float: left; /* Align to the left */
+  border-bottom-left-radius: 5px; /* Slightly less rounded on one corner */
+}
+
+.own-message {
+  background-color: #007bff; /* Blue for own messages */
+  color: white;
+  float: right; /* Align to the right */
+  border-bottom-right-radius: 5px; /* Slightly less rounded on one corner */
+}
+
+.sender-name {
+  font-size: 0.8em;
+  color: #555;
+  margin-bottom: 3px;
+  font-weight: bold;
+}
+
+.message-text {
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+/* Clearfix for the container of floated messages if needed */
+/* If messages are inside a container that needs to expand to content */
+/* .message-list-container::after {
+  content: "";
+  clear: both;
+  display: table;
+} */

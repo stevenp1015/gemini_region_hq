@@ -1,0 +1,41 @@
+.chat-input-form {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  background-color: #f8f9fa;
+}
+
+.chat-input-field {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px; /* Pill shape */
+  margin-right: 10px;
+  font-size: 0.95em;
+}
+
+.chat-input-field:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.chat-send-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 20px; /* Pill shape */
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.chat-send-button:hover {
+  background-color: #0056b3;
+}
+
+.chat-send-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}

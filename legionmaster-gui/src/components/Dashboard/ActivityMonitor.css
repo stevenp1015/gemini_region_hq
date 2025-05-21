@@ -1,0 +1,48 @@
+.activity-monitor-container {
+  border: 1px solid #e0e0e0;
+  padding: 15px;
+  border-radius: 4px;
+  background-color: #fdfdfd;
+  height: 300px; /* Example fixed height */
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-monitor-container h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #444;
+  font-size: 1.1em;
+}
+
+.activity-list {
+  flex-grow: 1;
+  overflow-y: auto; /* Scroll for many activities */
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85em;
+  background-color: #f0f0f0; /* Light background for log area */
+  padding: 10px;
+  border-radius: 3px;
+}
+
+.activity-item {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dotted #ccc; /* Dotted separator for log entries */
+  line-height: 1.4;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.activity-timestamp {
+  color: #007bff; /* Blue timestamp */
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.activity-text {
+  color: #333;
+}

@@ -1,0 +1,82 @@
+.minion-list-container {
+  border: 1px solid #e0e0e0;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #fdfdfd;
+}
+
+.minion-list-container h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #444;
+  font-size: 1.1em;
+}
+
+.minion-list-container ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px; /* Example fixed height */
+  overflow-y: auto; /* Scroll if many minions */
+}
+
+.minion-list-container li {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.minion-list-container li:last-child {
+  border-bottom: none;
+}
+
+.minion-list-container li:hover {
+  background-color: #f0f0f0;
+}
+
+.minion-list-container li.selected {
+  background-color: #e0e7ff;
+  font-weight: bold;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.status-dot.status-idle {
+  background-color: #888; /* Grey */
+}
+
+.status-dot.status-working {
+  background-color: #28a745; /* Green */
+}
+
+.status-dot.status-error {
+  background-color: #dc3545; /* Red */
+}
+
+.minion-details-simple {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.minion-details-simple h5 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.minion-details-simple p {
+  font-size: 0.9em;
+  margin: 4px 0;
+  color: #555;
+}

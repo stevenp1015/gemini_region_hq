@@ -1,0 +1,56 @@
+.chat-window-container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  height: 500px; /* Example fixed height, adjust as needed */
+  overflow: hidden; /* Contains the inner scrolling */
+}
+
+.chat-window-header {
+  padding: 10px 15px;
+  border-bottom: 1px solid #ccc;
+  background-color: #f8f9fa;
+}
+
+.chat-window-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.message-list {
+  flex-grow: 1;
+  padding: 15px;
+  overflow-y: auto; /* Enables scrolling for messages */
+  background-color: #ffffff; /* White background for message area */
+}
+
+.message-list::after { /* Clearfix for floated ChatMessage components */
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.no-messages-notice {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  margin-top: 20px;
+}
+
+.chat-window-placeholder-select {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #777;
+    font-style: italic;
+    font-size: 1.1em;
+    text-align: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
